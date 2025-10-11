@@ -1,0 +1,30 @@
+[
+    {
+        "name": "Santorini, Grecia",
+        "description": "Atardeceres inolvidables :)",
+        "tag": "beautiful"
+    },
+    {
+        "name": "Kioto, Japón",
+        "description": "Templos antiguos y jardines tradicionales, la esencia del Japón histórico.",
+        "tag": [
+            "historical",
+            "calm"
+        ]
+    },
+    {
+        "name": "Parque Tayrona, Colombia",
+        "description": "Un viaje y un lugar inolvidable!",
+        "tag": ["calm", "nature"]
+    },
+    {
+        "name": "Reikiavik, Islandia",
+        "description": "Viendo las auroras boreales :D",
+        "tag": "mystical"
+    },
+    {
+        "name": "Machu Picchu, Perú",
+        "description": "La antigua ciudad inca enclavada en las montañas andinas.",
+        "tag": "adventurous"
+    }
+]
