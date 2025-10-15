@@ -1,7 +1,7 @@
-function Home(){
-return(
-    <p>pendiente</p>
-)
+function Home() {
+    return (
+        <p>pendiente</p>
+    )
 }
 
 export default Home;

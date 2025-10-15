@@ -4,7 +4,7 @@ import CreatePost from "./pages/createPost";
 import Notifications from "./pages/notifications";
 import Profile from "./pages/profile";
 import SearchPage from "./pages/searchPage";
-import Navbar from "./components/navbar";
+import Navbar from "./components/sideBar";
 import './App.css'
 
 
