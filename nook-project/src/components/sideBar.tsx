@@ -30,7 +30,7 @@ function NavBar() {
 
                 <img src={nookLogo} alt="Logo Nook" className="w-24" />
 
-                <nav className='flex flex-col gap-6 w-full'>
+                <nav className='flex flex-col gap-10 w-full'>
                     <NavLink
                         to="/"
                         end
