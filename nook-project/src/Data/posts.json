@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "image": "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=1200",
+    "image": "https://i.pinimg.com/736x/ec/65/f2/ec65f23542c0683df4e8e6e17dfe41f6.jpg",
     "title": "Seoul Sky Lounge",
     "category": "Urban",
     "description": "A relaxing spot above the clouds with a breathtaking city view.",
@@ -14,7 +14,7 @@
   },
   {
     "id": 2,
-    "image": "https://images.unsplash.com/photo-1526483360412-f4dbaf036963?w=1200",
+    "image": "https://i.pinimg.com/1200x/2b/1e/de/2b1ede096a7a4434b67d5386f721ed77.jpg",
     "title": "Jeju Island Trails",
     "category": "Nature",
     "description": "Walk through the calm coastal paths of Jeju’s natural wonders.",

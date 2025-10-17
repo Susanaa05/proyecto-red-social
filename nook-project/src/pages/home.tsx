@@ -4,11 +4,11 @@ import Stories from "../components/stories";
 import FeedFilters from "../components/feedFilters";
 import SuggestedUsers from "../components/SuggestedUsers";
 import Post from "../components/Post";
-import postsData from "../data/posts.json"; // ✅ Importa tu JSON
+import postsData from "../data/posts.json";
 
 function Home() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [posts, setPosts] = useState(postsData); // ✅ Usa los datos del JSON
+  const [posts] = useState(postsData);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -27,24 +27,30 @@ function Home() {
             </div>
 
             <div className="w-full max-w-[480px] mx-auto flex flex-col gap-3">
-              <h2 className="text-base font-semibold text-gray-800 px-1">Stories</h2>
+              <h2 className="text-base font-semibold text-gray-800 px-1">
+                Stories
+              </h2>
               <Stories />
             </div>
 
-            <SuggestedUsers />
+            {/* Eliminamos SuggestedUsers en móvil */}
             <FeedFilters />
 
-            {/* POSTS MOBILE */}
-            <div className="flex flex-col gap-6">
+            {/* ===== POSTS MOBILE - Responsive ===== */}
+            <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
               {posts.map((post) => (
-                <Post
+                <div
                   key={post.id}
-                  image={post.image}
-                  title={post.title}
-                  category={post.category}
-                  description={post.description}
-                  visitors={post.visitors}
-                />
+                  className="w-full rounded-2xl overflow-hidden shadow-md bg-white"
+                >
+                  <Post
+                    image={post.image}
+                    title={post.title}
+                    category={post.category}
+                    description={post.description}
+                    visitors={post.visitors}
+                  />
+                </div>
               ))}
             </div>
           </>
@@ -73,9 +79,13 @@ function Home() {
 
               {/* COLUMNA DERECHA - STORIES + SUGGESTED */}
               <div className="w-full lg:w-[310px]">
-                <h2 className="text-base font-semibold text-gray-800 mb-2">Stories</h2>
+                <h2 className="text-base font-semibold text-gray-800 mb-2">
+                  Stories
+                </h2>
                 <Stories />
-                <div className="mt-6">
+
+                {/* SUGERIDOS SOLO EN DESKTOP */}
+                <div className="mt-6 hidden md:block">
                   <SuggestedUsers />
                 </div>
               </div>
@@ -88,3 +98,5 @@ function Home() {
 }
 
 export default Home;
+
+
