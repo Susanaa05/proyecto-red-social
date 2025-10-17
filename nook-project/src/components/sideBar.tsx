@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import nookLogo from "../assets/nook.png";
-import { Home, Menu, X } from 'lucide-react';
+import { Home, Menu, X, Search, Plus, Bell, CircleUserRound } from 'lucide-react';
 import { useState } from 'react';
 
 function NavBar() {
@@ -27,9 +27,9 @@ function NavBar() {
                 lg:translate-x-0
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
-                
+
                 <img src={nookLogo} alt="Logo Nook" className="w-24" />
-                
+
                 <nav className='flex flex-col gap-6 w-full'>
                     <NavLink
                         to="/"
@@ -47,10 +47,11 @@ function NavBar() {
                         to="/searchPage"
                         end
                         className={({ isActive }) =>
-                            `hover:text-purple-400 ${isActive ? 'text-white font-semibold' : ''}`
+                            `hover:text-purple-400  flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
                         }
                         onClick={() => setIsOpen(false)}
                     >
+                        <Search size={24} />
                         Search
                     </NavLink>
 
@@ -58,10 +59,11 @@ function NavBar() {
                         to="/notifications"
                         end
                         className={({ isActive }) =>
-                            `hover:text-purple-400 ${isActive ? 'text-white font-semibold' : ''}`
+                            `hover:text-purple-400  flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
                         }
                         onClick={() => setIsOpen(false)}
                     >
+                        <Bell size={24} />
                         Notifications
                     </NavLink>
 
@@ -69,10 +71,11 @@ function NavBar() {
                         to="/createPost"
                         end
                         className={({ isActive }) =>
-                            `hover:text-purple-400 ${isActive ? 'text-white font-semibold' : ''}`
+                            `hover:text-purple-400  flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
                         }
                         onClick={() => setIsOpen(false)}
                     >
+                        <Plus size={24} />
                         Create
                     </NavLink>
 
@@ -80,18 +83,19 @@ function NavBar() {
                         to="/profile"
                         end
                         className={({ isActive }) =>
-                            `hover:text-purple-400 ${isActive ? 'text-white font-semibold' : ''}`
+                            `hover:text-purple-400 flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
                         }
                         onClick={() => setIsOpen(false)}
                     >
+                        <CircleUserRound size={24} />
                         Profile
                     </NavLink>
                 </nav>
             </aside>
 
-            
+
             {isOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
                     onClick={() => setIsOpen(false)}
                 />
