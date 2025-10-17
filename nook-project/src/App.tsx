@@ -5,28 +5,33 @@ import Notifications from "./pages/notifications";
 import Profile from "./pages/profile";
 import SearchPage from "./pages/searchPage";
 import Navbar from "./components/sideBar";
-import './App.css'
-
+import "./App.css";
 
 function App() {
-
   return (
-       <div className="flex min-h-screen bg-gray-100">
-      {/* Navbar lateral */}
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar */}
       <Navbar />
 
-      {/* Contenido de la página */}
-      <main className="ml-50 flex-1 p-10">
+      {/* Contenido principal */}
+      <main
+        className="
+          flex-1 p-4 sm:p-6
+          lg:ml-64  /* margen cuando sidebar está completo en desktop */
+          ml-16     /* margen cuando sidebar está colapsado en mobile */
+          transition-all duration-300
+        "
+      >
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/create" element={<CreatePost />} />
+          <Route path="/createPost" element={<CreatePost />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/search" element={<SearchPage />} />
+          <Route path="/searchPage" element={<SearchPage />} />
         </Routes>
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

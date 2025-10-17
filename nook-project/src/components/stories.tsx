@@ -36,11 +36,20 @@ const Stories: React.FC = () => {
   ];
 
   return (
-    <div className="flex gap-4 overflow-x-auto p-1 scrollbar-hide">
+    <div
+      className="
+        flex gap-4 overflow-x-auto overflow-y-hidden py-2 px-1
+        scrollbar-hide scroll-smooth snap-x snap-mandatory
+      "
+    >
       {stories.map((story) => (
         <div
           key={story.id}
-          className="relative w-[150px] h-[200px] flex-shrink-0 rounded-xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-105"
+          className="
+            relative flex-shrink-0 rounded-xl overflow-hidden shadow-md cursor-pointer
+            transition-transform hover:scale-105 snap-start
+            w-[38vw] h-[55vw] max-w-[150px] max-h-[200px] sm:w-[150px] sm:h-[200px]
+          "
         >
           {/* Imagen principal */}
           <img
@@ -49,9 +58,8 @@ const Stories: React.FC = () => {
             className="w-full h-full object-cover"
           />
 
-          {/* Fondo borroso en la parte inferior */}
-          <div className="absolute bottom-0 left-0 right-0 h-13 backdrop-blur-[8px] bg-black/25"></div>
-
+          {/* Fondo borroso inferior */}
+          <div className="absolute bottom-0 left-0 right-0 h-14 backdrop-blur-md bg-black/25" />
 
           {/* Perfil + nombre */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5">

@@ -1,107 +1,90 @@
 import { NavLink } from 'react-router-dom';
 import nookLogo from "../assets/nook.png";
-import { Home, Menu, X, Search, Plus, Bell, CircleUserRound } from 'lucide-react';
-import { useState } from 'react';
+import { Home, Search, Plus, Bell, CircleUserRound, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 function NavBar() {
-    const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-    const toggleMenu = () => {
-        setIsOpen(!isOpen);
-    };
+  const toggleMenu = () => setIsOpen(!isOpen);
 
-    return (
-        <>
-            {/* Botón para abrir/cerrar en móvil */}
-            <button
-                onClick={toggleMenu}
-                className="fixed top-4 left-4 z-50 bg-black text-white p-2 rounded-md lg:hidden"
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return (
+    <>
+      <aside
+        className={`
+          fixed top-0 left-0 h-full bg-black text-white flex flex-col items-center py-6 transition-all duration-300 z-50
+          ${isDesktop ? 'w-64' : isOpen ? 'w-40' : 'w-16'}
+        `}
+      >
+        {/* Botón de menú (solo visible en mobile) */}
+        {!isDesktop && (
+          <button
+            onClick={toggleMenu}
+            className="bg-gray-900 p-2 rounded-md hover:bg-gray-800 transition mb-6"
+          >
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        )}
+
+        {/* Logo (solo visible cuando está expandido o en desktop) */}
+        {(isOpen || isDesktop) && (
+          <img
+            src={nookLogo}
+            alt="Logo Nook"
+            className={`transition-all duration-300 mb-8 
+              ${isDesktop ? 'w-28' : 'w-16'}`} // 👈 logo más grande solo en desktop
+          />
+        )}
+
+        {/* Navegación */}
+        <nav
+          className={`
+            flex flex-col w-full px-2
+            ${isDesktop ? 'gap-12' : 'gap-8'}
+          `}
+        >
+          {[
+            { to: "/", label: "Home", icon: <Home /> },
+            { to: "/searchPage", label: "Search", icon: <Search /> },
+            { to: "/createPost", label: "Create", icon: <Plus /> },
+            { to: "/notifications", label: "Notifications", icon: <Bell /> },
+            { to: "/profile", label: "Profile", icon: <CircleUserRound /> },
+          ].map(({ to, label, icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 hover:text-purple-400 px-2 transition-colors ${
+                  isActive ? 'text-purple-300' : ''
+                } ${isDesktop ? 'text-lg font-medium' : 'text-base'}`
+              }
+              onClick={() => !isDesktop && setIsOpen(false)}
             >
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-
-            {/* Barra de navegación */}
-            <aside className={`
-                fixed top-0 left-0 h-full w-64 bg-black text-white flex flex-col items-center py-10 space-y-10 px-6
-                transition-transform duration-300 z-40
-                lg:translate-x-0
-                ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}>
-
-                <img src={nookLogo} alt="Logo Nook" className="w-24" />
-
-                <nav className='flex flex-col gap-10 w-full'>
-                    <NavLink
-                        to="/"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400 flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <Home size={24} />
-                        Home
-                    </NavLink>
-
-                    <NavLink
-                        to="/searchPage"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400  flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <Search size={24} />
-                        Search
-                    </NavLink>
-
-                    <NavLink
-                        to="/notifications"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400  flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <Bell size={24} />
-                        Notifications
-                    </NavLink>
-
-                    <NavLink
-                        to="/createPost"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400  flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <Plus size={24} />
-                        Create
-                    </NavLink>
-
-                    <NavLink
-                        to="/profile"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400 flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <CircleUserRound size={24} />
-                        Profile
-                    </NavLink>
-                </nav>
-            </aside>
-
-
-            {isOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-                    onClick={() => setIsOpen(false)}
-                />
-            )}
-        </>
-    );
+              {/* Tamaños separados para mobile y desktop */}
+              <div className={`${isDesktop ? 'scale-125' : 'scale-100'} transition-transform`}>
+                {icon}
+              </div>
+              <span
+                className={`
+                  overflow-hidden transition-all duration-300
+                  ${isOpen || isDesktop ? 'opacity-100 w-auto' : 'opacity-0 w-0'}
+                `}
+              >
+                {label}
+              </span>
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+    </>
+  );
 }
 
 export default NavBar;
