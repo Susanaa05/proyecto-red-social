@@ -3,12 +3,24 @@ import nookLogo from "../assets/nook.png";
 import { Home, Search, Plus, Bell, CircleUserRound, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+/**
+ * Responsive navigation sidebar component.
+ * Expands automatically on desktop and toggles visibility on mobile.
+ */
 function NavBar() {
+  /** State for mobile menu visibility */
   const [isOpen, setIsOpen] = useState(false);
+
+  /** State to detect if the user is on a desktop screen */
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
+  /** Toggles the mobile menu open or closed */
   const toggleMenu = () => setIsOpen(!isOpen);
 
+  /**
+   * Updates `isDesktop` state when the window is resized.
+   * Cleans up the event listener on component unmount.
+   */
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener('resize', handleResize);
@@ -17,13 +29,14 @@ function NavBar() {
 
   return (
     <>
+      {/* Sidebar container */}
       <aside
         className={`
           fixed top-0 left-0 h-full bg-black text-white flex flex-col items-center py-6 transition-all duration-300 z-50
           ${isDesktop ? 'w-64' : isOpen ? 'w-40' : 'w-16'}
         `}
       >
-        {/* Botón de menú (solo visible en mobile) */}
+        {/* Menu button (only visible on mobile) */}
         {!isDesktop && (
           <button
             onClick={toggleMenu}
@@ -33,17 +46,17 @@ function NavBar() {
           </button>
         )}
 
-        {/* Logo (solo visible cuando está expandido o en desktop) */}
+        {/* Logo (visible when expanded or on desktop) */}
         {(isOpen || isDesktop) && (
           <img
             src={nookLogo}
-            alt="Logo Nook"
+            alt="Nook Logo"
             className={`transition-all duration-300 mb-8 
-              ${isDesktop ? 'w-28' : 'w-16'}`} // 👈 logo más grande solo en desktop
+              ${isDesktop ? 'w-28' : 'w-16'}`}
           />
         )}
 
-        {/* Navegación */}
+        {/* Navigation links */}
         <nav
           className={`
             flex flex-col w-full px-2
@@ -65,12 +78,14 @@ function NavBar() {
                   isActive ? 'text-purple-300' : ''
                 } ${isDesktop ? 'text-lg font-medium' : 'text-base'}`
               }
-              onClick={() => !isDesktop && setIsOpen(false)}
+              onClick={() => !isDesktop && setIsOpen(false)} // Closes menu after click on mobile
             >
-              {/* Tamaños separados para mobile y desktop */}
+              {/* Icon size adjusts between mobile and desktop */}
               <div className={`${isDesktop ? 'scale-125' : 'scale-100'} transition-transform`}>
                 {icon}
               </div>
+
+              {/* Label fades in/out depending on sidebar state */}
               <span
                 className={`
                   overflow-hidden transition-all duration-300
