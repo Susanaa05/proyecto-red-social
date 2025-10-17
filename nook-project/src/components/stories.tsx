@@ -1,6 +1,8 @@
 import React from "react";
 
+// Component that displays user stories (similar to Instagram or Facebook)
 const Stories: React.FC = () => {
+  // Array containing story data: id, user name, story image, and profile image
   const stories = [
     {
       id: 1,
@@ -36,12 +38,14 @@ const Stories: React.FC = () => {
   ];
 
   return (
+    // Horizontal scrollable container for stories
     <div
       className="
         flex gap-4 overflow-x-auto overflow-y-hidden py-2 px-1
         scrollbar-hide scroll-smooth snap-x snap-mandatory
       "
     >
+      {/* Loop through each story and render it */}
       {stories.map((story) => (
         <div
           key={story.id}
@@ -51,18 +55,19 @@ const Stories: React.FC = () => {
             w-[38vw] h-[55vw] max-w-[150px] max-h-[200px] sm:w-[150px] sm:h-[200px]
           "
         >
-          {/* Imagen principal */}
+          {/* Main story image */}
           <img
             src={story.storyImg}
             alt={story.name}
             className="w-full h-full object-cover"
           />
 
-          {/* Fondo borroso inferior */}
+          {/* Blurred background at the bottom for better text visibility */}
           <div className="absolute bottom-0 left-0 right-0 h-14 backdrop-blur-md bg-black/25" />
 
-          {/* Perfil + nombre */}
+          {/* Profile image + username displayed at the bottom left */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+            {/* Profile border gradient (like Instagram) */}
             <div className="relative w-8 h-8 rounded-full p-[2px] bg-gradient-to-tr from-pink-500 via-purple-500 to-blue-500">
               <img
                 src={story.profileImg}
@@ -70,6 +75,8 @@ const Stories: React.FC = () => {
                 className="w-full h-full rounded-full object-cover"
               />
             </div>
+
+            {/* Username text */}
             <span className="text-white text-xs font-medium drop-shadow-md truncate max-w-[60px]">
               {story.name}
             </span>
