@@ -1,4 +1,6 @@
 import React from "react";
+import { useState } from "react";
+import { Bookmark, MapPin, BookmarkCheck } from 'lucide-react';
 
 interface PostProps {
   image: string;
@@ -15,6 +17,16 @@ const Post: React.FC<PostProps> = ({
   description,
   visitors,
 }) => {
+
+  {/*estado del boton add to list*/ }
+  const [added, setAdded] = useState(false);
+
+  {/*cambio de estado al hacer clic en boton*/ }
+
+  const handleAddClick = () => {
+    setAdded(!added);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden w-full max-w-4xl mx-auto">
       {/* Imagen principal con altura adaptable */}
@@ -59,10 +71,15 @@ const Post: React.FC<PostProps> = ({
 
             {/* Botones */}
             <div className="flex gap-3">
-              <button className="px-6 py-3 sm:px-3 sm:py-1.5 bg-white/20 backdrop-blur-sm text-white rounded-xl text-lg sm:text-xs font-medium hover:bg-white/30 transition-colors border border-white/30">
-                Add to list
+              <button onClick={handleAddClick} className={`px-6 py-3 flex flex-row items-center gap-2 sm:px-3 sm:py-1.5 rounded-xl text-lg sm:text-xs font-medium border transition-colors ${added
+                ? "bg-purple-500 text-white border-purple-600 hover:bg-purple-600"
+                : "bg-white/20 backdrop-blur-sm text-white border-white/30 hover:bg-white/30"
+                }`}>
+                {added ? <BookmarkCheck /> : <Bookmark />}
+                {added ? "Added" : "Add to list"}
               </button>
-              <button className="px-6 py-3 sm:px-3 sm:py-1.5 bg-purple-500 text-white rounded-xl text-lg sm:text-xs font-medium hover:bg-purple-600 transition-colors">
+              <button className="px-6 py-3 flex flex-row sm:px-3 sm:py-1.5 bg-purple-500 text-white rounded-xl text-lg sm:text-xs font-medium hover:bg-purple-600 transition-colors">
+                <MapPin />
                 How to go
               </button>
             </div>
