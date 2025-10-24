@@ -25,10 +25,10 @@
   },
   {
     "id": 3,
-    "image": "https://i.pinimg.com/1200x/2b/1e/de/2b1ede096a7a4434b67d5386f721ed77.jpg",
-    "title": "Jeju Island Trails",
+    "image": "https://cdn2.paraty.es/demo14/images/ef7d8f6c8bff807",
+    "title": "Santorini",
     "category": "Nature",
-    "description": "Walk through the calm coastal paths of Jeju’s natural wonders.",
+    "description": "Beautiful beaches and architecture.",
     "visitors": [
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
       "https://images.unsplash.com/photo-1502767089025-6572583495b4?w=100&h=100&fit=crop&crop=face"
@@ -36,10 +36,10 @@
   },
     {
     "id": 4,
-    "image": "https://i.pinimg.com/1200x/2b/1e/de/2b1ede096a7a4434b67d5386f721ed77.jpg",
-    "title": "Jeju Island Trails",
+    "image": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/51610543.webp?k=4e0067ffc50a7c3ea88778ed2d9b698d0a9b9ecf033143754fd9159580547a34&o=",
+    "title": "Bora Bora",
     "category": "Nature",
-    "description": "Walk through the calm coastal paths of Jeju’s natural wonders.",
+    "description": "Enjoy the tranquility of the sea.",
     "visitors": [
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
       "https://images.unsplash.com/photo-1502767089025-6572583495b4?w=100&h=100&fit=crop&crop=face"

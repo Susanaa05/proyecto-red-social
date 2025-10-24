@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import usersData from "../data/suggestedUsers.json"; // ✅ Import user data from JSON
+import usersData from "../data/suggestedUsers.json"; // Import user data from JSON
 
 // Type definition for a user
 interface User {
