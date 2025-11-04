@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import FeedHeader from "../components/feedheader";
 import Stories from "../components/stories";
 import FeedFilters from "../components/feedFilters";
@@ -7,14 +8,23 @@ import Post from "../components/Post";
 import postsData from "../data/posts.json";
 
 function Home() {
+  const location = useLocation();
+  const selectedPlace = location.state?.selectedPlace || null;
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [posts] = useState(postsData);
 
+  const filtededPosts = selectedPlace
+    ? posts.filter((post) =>
+      post.title.toLowerCase().includes(selectedPlace.toLowerCase()) ||
+      post.description.toLowerCase().includes(selectedPlace.toLowerCase())
+    )
+    : posts;
+
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+      const handleResize = () => setIsMobile(window.innerWidth < 768);
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
   return (
     <div className="flex justify-center min-h-screen px-4 overflow-x-hidden bg-gray-50">
@@ -38,7 +48,7 @@ function Home() {
 
             {/* ===== POSTS MOBILE - Responsive ===== */}
             <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
-              {posts.map((post) => (
+              {filtededPosts.map((post) => (
                 <div
                   key={post.id}
                   className="w-full rounded-2xl overflow-hidden shadow-md bg-white"
@@ -65,7 +75,7 @@ function Home() {
             <div className="flex flex-col-reverse lg:flex-row justify-between gap-6">
               {/* COLUMNA IZQUIERDA - POSTS */}
               <div className="w-full lg:w-2/3 flex flex-col gap-6">
-                {posts.map((post) => (
+                {filtededPosts.map((post) => (
                   <Post
                     key={post.id}
                     image={post.image}
