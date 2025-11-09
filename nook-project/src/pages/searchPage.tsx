@@ -1,56 +1,87 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search as SearchIcon, MapPin, X } from "lucide-react";
-import postsData from '../data/posts.json';
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import FeedHeader from "../components/feedheader";
+import Post from "../components/Post";
+import postsData from "../data/posts.json";
 
+function SearchPage() {
+    const location = useLocation();
+    const selectedPlace = location.state?.selectedPlace || null;
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [posts] = useState(postsData);
 
-function SerachPage() {
+    const filteredPosts = selectedPlace
+        ? posts.filter((post) =>
+            post.title.toLowerCase().includes(selectedPlace.toLowerCase()) ||
+            post.description.toLowerCase().includes(selectedPlace.toLowerCase())
+        )
+        : posts;
 
-    const navigate = useNavigate();
-    const [query, setQuery] = useState("");
-
-    const allPlaces = postsData.map((post) => post.title);
-    const filteredPlaces = allPlaces.filter((place) =>
-        place.toLowerCase().includes(query.toLowerCase())
-    );
-
-    const handleSelect = (place: string) => {
-        navigate("/", { state: { selectedPlace: place } });
-    };
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     return (
-        <div className=" bg-black text-white p-5 flex flex-col rounded-lg">
-            <button onClick={() => navigate("/")} className="mt-4 text-sm text-gray-400 hover:text-purple-500 mb-5"><X /></button>
-            <div className="flex flex-row">
-                <SearchIcon className="mr-2 text-purple-300" />
-                <input
-                    type='text'
-                    placeholder="Search places"
-                    className="bg-transparent border-b border-purple-400 w-full focus:outline-none "
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+        <div className="flex justify-center min-h-screen px-4 overflow-x-hidden bg-gray-50">
+            <div className="w-full max-w-6xl flex flex-col gap-6 mt-6">
+                <div className="w-full max-w-[480px] mx-auto">
+                    <FeedHeader />
+                </div>
 
-                />
-            </div>
-            <div className="flex-1 overflow-y-auto mt-5">
-                {filteredPlaces.length > 0 ? (
-                    filteredPlaces.map((place, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleSelect(place)}
-                            className="flex items-center p-2 hover:bg-purple-500 cursor-pointer rounded-lg"
-                        >
-                            <MapPin className="w-4 h-4 text-purple-300 mr-2" />
-                            <span>{place}</span>
+                {isMobile ? (
+                    <>
+                        {/* ===== MOBILE ===== */}
+
+                        {/* ===== POSTS MOBILE - Responsive ===== */}
+                        <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
+                            {filteredPosts.map((post) => (
+                                <div
+                                    key={post.id}
+                                    className="w-full rounded-2xl overflow-hidden shadow-md bg-white"
+                                >
+                                    <Post
+                                        image={post.image}
+                                        title={post.title}
+                                        category={post.category}
+                                        description={post.description}
+                                        visitors={post.visitors}
+                                    />
+                                </div>
+                            ))}
+                            {filteredPosts.length === 0 && (
+                                <p className="text-gray-500 text-center mt-10">
+                                    No results found for "{selectedPlace}"
+                                </p>
+                            )}
+
                         </div>
-                    ))
+                    </>
                 ) : (
-                    <p className="text-gray-400 text-sm">No results found</p>
+                    <>
+                        {/* ===== DESKTOP ===== */}
+                        <div className="flex flex-col-reverse lg:flex-row justify-center gap-6">
+                            {/* COLUMNA IZQUIERDA - POSTS */}
+                            <div className="w-full lg:w-2/3 flex flex-col gap-6">
+                                {filteredPosts.map((post) => (
+                                    <Post
+                                        key={post.id}
+                                        image={post.image}
+                                        title={post.title}
+                                        category={post.category}
+                                        description={post.description}
+                                        visitors={post.visitors}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
-
-    )
+    );
 }
 
-export default SerachPage;
+export default SearchPage;
+

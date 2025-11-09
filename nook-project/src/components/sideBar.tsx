@@ -65,7 +65,7 @@ function NavBar() {
         >
           {[
             { to: "/", label: "Home", icon: <Home /> },
-            { to: "/searchPage", label: "Search", icon: <Search /> },
+            { to: "/searchFunction", label: "Search", icon: <Search /> },
             { to: "/createPost", label: "Create", icon: <Plus /> },
             { to: "/notifications", label: "Notifications", icon: <Bell /> },
             { to: "/profile", label: "Profile", icon: <CircleUserRound /> },
@@ -74,8 +74,7 @@ function NavBar() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 hover:text-purple-400 px-2 transition-colors ${
-                  isActive ? 'text-purple-300' : ''
+                `flex items-center gap-3 hover:text-purple-400 px-2 transition-colors ${isActive ? 'text-purple-300' : ''
                 } ${isDesktop ? 'text-lg font-medium' : 'text-base'}`
               }
               onClick={() => !isDesktop && setIsOpen(false)} // Closes menu after click on mobile
