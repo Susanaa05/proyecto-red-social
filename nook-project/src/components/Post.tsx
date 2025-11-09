@@ -100,7 +100,7 @@ const Post: React.FC<PostProps> = ({
               </button>
 
               {/* Button that hypothetically shows directions to the location */}
-              <button className="px-6 py-3 flex flex-row sm:px-3 sm:py-1.5 bg-purple-500 text-white rounded-xl text-lg sm:text-xs font-medium hover:bg-purple-600 transition-colors">
+              <button className="px-6 py-3 flex flex-row sm:px-3 sm:py-1.5 bg-purple-500 text-white rounded-xl text-lg sm:text-xs font-medium hover:bg-purple-600 transition-colors items-center">
                 <MapPin />
                 How to go
               </button>
