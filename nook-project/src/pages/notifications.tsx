@@ -3,7 +3,6 @@ import { notificationsData } from '../Data/notificationsData';
 import { X } from 'lucide-react';
 
 const Notifications: React.FC = () => {
-  // Agrupar notificaciones por sección
   const groupedNotifications = notificationsData.reduce((acc, notification) => {
     (acc[notification.section] = acc[notification.section] || []).push(notification);
     return acc;

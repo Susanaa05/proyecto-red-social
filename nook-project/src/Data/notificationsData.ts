@@ -1,4 +1,4 @@
-// src/data/notificationsData.ts
+
 export interface Notification {
   id: number;
   user: string;
