@@ -1,13 +1,40 @@
 import { NavLink } from 'react-router-dom';
+import { type ReactNode } from 'react';
 import nookLogo from "../assets/nook.png";
 import { Home, Search, Plus, Bell, CircleUserRound, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 /**
+ * NavBar Component Props
+ */
+interface NavBarProps {
+  onCreateClick: () => void;
+}
+
+/**
+ * Navigation item types
+ */
+type NavItemLink = {
+  type: 'link';
+  to: string;
+  label: string;
+  icon: ReactNode;
+};
+
+type NavItemButton = {
+  type: 'button';
+  onClick: () => void;
+  label: string;
+  icon: ReactNode;
+};
+
+type NavItem = NavItemLink | NavItemButton;
+
+/**
  * Responsive navigation sidebar component.
  * Expands automatically on desktop and toggles visibility on mobile.
  */
-function NavBar() {
+function NavBar({ onCreateClick }: NavBarProps) {
   /** State for mobile menu visibility */
   const [isOpen, setIsOpen] = useState(false);
 
@@ -26,6 +53,15 @@ function NavBar() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Navigation items configuration
+  const navItems: NavItem[] = [
+    { type: 'link', to: '/', label: 'Home', icon: <Home /> },
+    { type: 'link', to: '/searchFunction', label: 'Search', icon: <Search /> },
+    { type: 'button', onClick: onCreateClick, label: 'Create', icon: <Plus /> },
+    { type: 'link', to: '/notifications', label: 'Notifications', icon: <Bell /> },
+    { type: 'link', to: '/profile', label: 'Profile', icon: <CircleUserRound /> },
+  ];
 
   return (
     <>
@@ -63,37 +99,63 @@ function NavBar() {
             ${isDesktop ? 'gap-12' : 'gap-8'}
           `}
         >
-          {[
-            { to: "/", label: "Home", icon: <Home /> },
-            { to: "/searchFunction", label: "Search", icon: <Search /> },
-            { to: "/createPost", label: "Create", icon: <Plus /> },
-            { to: "/notifications", label: "Notifications", icon: <Bell /> },
-            { to: "/profile", label: "Profile", icon: <CircleUserRound /> },
-          ].map(({ to, label, icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 hover:text-purple-400 px-2 transition-colors ${isActive ? 'text-purple-300' : ''
-                } ${isDesktop ? 'text-lg font-medium' : 'text-base'}`
-              }
-              onClick={() => !isDesktop && setIsOpen(false)} // Closes menu after click on mobile
-            >
-              {/* Icon size adjusts between mobile and desktop */}
-              <div className={`${isDesktop ? 'scale-125' : 'scale-100'} transition-transform`}>
-                {icon}
-              </div>
-
-              {/* Label fades in/out depending on sidebar state */}
-              <span
+          {navItems.map((item) => (
+            item.type === 'button' ? (
+              // ===== CREATE BUTTON (MODAL TRIGGER) =====
+              <button
+                key={item.label}
+                onClick={() => {
+                  item.onClick();
+                  if (!isDesktop) setIsOpen(false); // Close menu on mobile after click
+                }}
                 className={`
-                  overflow-hidden transition-all duration-300
-                  ${isOpen || isDesktop ? 'opacity-100 w-auto' : 'opacity-0 w-0'}
+                  flex items-center gap-3 hover:text-purple-400 px-2 transition-colors
+                  ${isDesktop ? 'text-lg font-medium' : 'text-base'}
                 `}
               >
-                {label}
-              </span>
-            </NavLink>
+                {/* Icon size adjusts between mobile and desktop */}
+                <div className={`${isDesktop ? 'scale-125' : 'scale-100'} transition-transform`}>
+                  {item.icon}
+                </div>
+
+                {/* Label fades in/out depending on sidebar state */}
+                <span
+                  className={`
+                    overflow-hidden transition-all duration-300
+                    ${isOpen || isDesktop ? 'opacity-100 w-auto' : 'opacity-0 w-0'}
+                  `}
+                >
+                  {item.label}
+                </span>
+              </button>
+            ) : (
+              // ===== REGULAR NAVIGATION LINKS =====
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 hover:text-purple-400 px-2 transition-colors ${
+                    isActive ? 'text-purple-300' : ''
+                  } ${isDesktop ? 'text-lg font-medium' : 'text-base'}`
+                }
+                onClick={() => !isDesktop && setIsOpen(false)} // Closes menu after click on mobile
+              >
+                {/* Icon size adjusts between mobile and desktop */}
+                <div className={`${isDesktop ? 'scale-125' : 'scale-100'} transition-transform`}>
+                  {item.icon}
+                </div>
+
+                {/* Label fades in/out depending on sidebar state */}
+                <span
+                  className={`
+                    overflow-hidden transition-all duration-300
+                    ${isOpen || isDesktop ? 'opacity-100 w-auto' : 'opacity-0 w-0'}
+                  `}
+                >
+                  {item.label}
+                </span>
+              </NavLink>
+            )
           ))}
         </nav>
       </aside>
