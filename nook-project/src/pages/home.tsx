@@ -5,13 +5,15 @@ import Stories from "../components/stories";
 import FeedFilters from "../components/feedFilters";
 import SuggestedUsers from "../components/SuggestedUsers";
 import Post from "../components/Post";
-import postsData from "../data/posts.json";
+import { useAppSelector } from "../store/hooks";
 
 function Home() {
   const location = useLocation();
   const selectedPlace = location.state?.selectedPlace || null;
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [posts] = useState(postsData);
+  
+  // Get posts from Redux store
+  const posts = useAppSelector((state) => state.posts.posts);
 
   const filteredPosts = selectedPlace
     ? posts.filter((post) =>
@@ -43,7 +45,6 @@ function Home() {
               <Stories />
             </div>
 
-            {/* Eliminamos SuggestedUsers en móvil */}
             <FeedFilters />
 
             {/* ===== POSTS MOBILE - Responsive ===== */}
@@ -67,7 +68,6 @@ function Home() {
                   No results found for "{selectedPlace}"
                 </p>
               )}
-
             </div>
           </>
         ) : (
@@ -114,5 +114,3 @@ function Home() {
 }
 
 export default Home;
-
-

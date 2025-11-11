@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, MapPin, Hash, Music, Sliders, Type } from "lucide-react";
+import { useAppDispatch } from "../store/hooks";
+import { addPost } from "../store/postsSlice";
 
 /**
  * CreatePost Component
@@ -12,12 +14,16 @@ interface CreatePostProps {
 }
 
 function CreatePost({ isOpen, onClose }: CreatePostProps) {
+  const dispatch = useAppDispatch();
+  
   // Current step: 'upload' or 'details'
   const [step, setStep] = useState<'upload' | 'details'>('upload');
 
   // Form state
   const [formData, setFormData] = useState({
     image: "",
+    title: "",
+    category: "",
     description: "",
     tags: "",
     location: "",
@@ -36,17 +42,30 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
    */
   const handleBack = () => {
     setStep('upload');
-    setFormData({ image: "", description: "", tags: "", location: "" });
   };
 
   /**
-   * Handles form submission
+   * Handles form submission - Creates new post in Redux store
    */
   const handleShare = () => {
-    console.log("Post data:", formData);
-    // Reset and close
+    // Create new post object
+    const newPost = {
+      id: Date.now(), // Simple ID generation (use UUID in production)
+      image: formData.image,
+      title: formData.title,
+      category: formData.category,
+      description: formData.description,
+      visitors: [], // Empty visitors array for new posts
+      tags: formData.tags,
+      location: formData.location,
+    };
+
+    // Dispatch action to add post to Redux store
+    dispatch(addPost(newPost));
+
+    // Reset form and close modal
     setStep('upload');
-    setFormData({ image: "", description: "", tags: "", location: "" });
+    setFormData({ image: "", title: "", category: "", description: "", tags: "", location: "" });
     onClose();
   };
 
@@ -188,6 +207,24 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
                   </button>
                 </div>
 
+                {/* Title Input */}
+                <input
+                  type="text"
+                  placeholder="Add a title..."
+                  value={formData.title}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
+                  className="w-full px-4 py-2 border-0 focus:outline-none text-gray-900 font-semibold placeholder-gray-400 mb-2"
+                />
+
+                {/* Category Input */}
+                <input
+                  type="text"
+                  placeholder="Category (e.g., Urban, Nature)..."
+                  value={formData.category}
+                  onChange={(e) => handleInputChange("category", e.target.value)}
+                  className="w-full px-4 py-2 border-0 focus:outline-none text-gray-700 placeholder-gray-400 mb-2"
+                />
+
                 {/* Description */}
                 <textarea
                   placeholder="Add the description or caption..."
@@ -207,7 +244,9 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
                 >
                   <div className="flex items-center gap-3">
                     <Hash size={20} className="text-gray-700" />
-                    <span className="text-gray-700 font-medium">Tags</span>
+                    <span className="text-gray-700 font-medium">
+                      {formData.tags || "Tags"}
+                    </span>
                   </div>
                   <svg
                     className="w-5 h-5 text-gray-400"

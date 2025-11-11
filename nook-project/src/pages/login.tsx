@@ -1,18 +1,22 @@
 import LoginForm from '../components/LoginForm';
 import LoginMapSection from '../components/LoginMapSection';
+import { useAppDispatch } from '../store/hooks';
+import { login } from '../store/authSlice';
 
-interface LoginProps {
-  onLoginSuccess?: () => void;
-}
-
-function Login({ onLoginSuccess }: LoginProps) {
+function Login() {
+  const dispatch = useAppDispatch();
 
   const handleLogin = (username: string, password: string) => {
     console.log('Login attempt:', { username, password });
     
-    // 👇 Llama a onLoginSuccess sin importar qué escriba (para testing)
-    // Puedes agregar validación después: if (username === 'admin' && password === '1234')
-    onLoginSuccess?.();
+    // Dispatch login action with user data
+    dispatch(login({
+      id: '1',
+      firstName: 'Alex',
+      userName: username || 'Alex_S',
+      location: 'Cali, Colombia',
+      avatar: 'https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg'
+    }));
   };
 
   return (

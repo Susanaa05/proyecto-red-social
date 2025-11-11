@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect } from "react";
 import Home from "./pages/home";
 import Notifications from "./pages/notifications";
 import Profile from "./pages/profile";
@@ -8,11 +8,25 @@ import Login from "./pages/login";
 import SearchFunction from "./components/searchFunction";
 import Navbar from "./components/sideBar";
 import CreatePost from "./components/createPost";
+import { useAppSelector, useAppDispatch } from "./store/hooks";
+import { openCreatePostModal, closeCreatePostModal } from "./store/uiSlice";
+import { setPosts } from "./store/postsSlice";
+import postsData from "./data/posts.json";
 import './App.css';
 
 function App() {
-  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const dispatch = useAppDispatch();
+  
+  // Get state from Redux
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const isCreatePostOpen = useAppSelector((state) => state.ui.isCreatePostModalOpen);
+
+  /**
+   * Load posts data on mount
+   */
+  useEffect(() => {
+    dispatch(setPosts(postsData));
+  }, [dispatch]);
 
   return (
     <Routes>
@@ -23,7 +37,7 @@ function App() {
           isAuthenticated ? (
             <Navigate to="/home" replace />
           ) : (
-            <Login onLoginSuccess={() => setIsAuthenticated(true)} />
+            <Login />
           )
         } 
       />
@@ -34,7 +48,7 @@ function App() {
         element={
           isAuthenticated ? (
             <div className="flex min-h-screen bg-gray-100">
-              <Navbar onCreateClick={() => setIsCreatePostOpen(true)} />
+              <Navbar onCreateClick={() => dispatch(openCreatePostModal())} />
               <main
                 className="
                   flex-1 p-4 sm:p-6
@@ -54,7 +68,7 @@ function App() {
               </main>
               <CreatePost 
                 isOpen={isCreatePostOpen} 
-                onClose={() => setIsCreatePostOpen(false)} 
+                onClose={() => dispatch(closeCreatePostModal())} 
               />
             </div>
           ) : (

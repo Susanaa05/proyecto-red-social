@@ -1,20 +1,24 @@
-// src/pages/profile.tsx
-import { useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Home, Map, Search, Bell, PlusCircle, User } from 'lucide-react';
-import { useState, useEffect } from 'react'; // 👈 Agregamos useEffect
+import { useState, useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { logout, updateProfile } from '../store/authSlice';
+import { openEditProfileModal, closeEditProfileModal } from '../store/uiSlice';
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
+  // Get user data and modal state from Redux
+  const user = useAppSelector((state) => state.auth.user);
+  const isEditModalOpen = useAppSelector((state) => state.ui.isEditProfileModalOpen);
 
-  // modal 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false); // 
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [editForm, setEditForm] = useState({
-    firstName: 'Alex',
-    userName: 'Alex_S',
-    location: 'Call, Colomba',
-    avatar: 'https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg'
+    firstName: user?.firstName || 'Alex',
+    userName: user?.userName || 'Alex_S',
+    location: user?.location || 'Cali, Colombia',
+    avatar: user?.avatar || 'https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg'
   });
 
   const menuItems = [
@@ -26,22 +30,32 @@ function ProfilePage() {
     { path: '/profile', icon: User, label: 'Profile' },
   ];
 
-  // transiciones del modal
+  // Update edit form when user data changes
+  useEffect(() => {
+    if (user) {
+      setEditForm({
+        firstName: user.firstName,
+        userName: user.userName,
+        location: user.location,
+        avatar: user.avatar,
+      });
+    }
+  }, [user]);
+
+  // Modal transition effects
   useEffect(() => {
     if (isEditModalOpen) {
-      // Pequeño delay para que el render ocurra antes de la animación
       setTimeout(() => setIsModalVisible(true), 100);
     } else {
       setIsModalVisible(false);
     }
   }, [isEditModalOpen]);
 
-  
   const closeModal = () => {
     setIsModalVisible(false);
-    setTimeout(() => setIsEditModalOpen(false), 300);
+    setTimeout(() => dispatch(closeEditProfileModal()), 300);
   };
-  
+
   const handleInputChange = (field: string, value: string) => {
     setEditForm(prev => ({
       ...prev,
@@ -50,17 +64,16 @@ function ProfilePage() {
   };
 
   const handleSaveChanges = () => {
-    console.log('Datos guardados:', editForm);
-    closeModal(); 
+    // Dispatch action to update user profile in Redux
+    dispatch(updateProfile(editForm));
+    closeModal();
   };
 
-const handleLogout = () => {
-  console.log('Cerrando sesión...');
-  // Si quieres que vuelva a pedir login, puedes usar:
-  window.location.href = '/login'; // Esto recarga la página y resetea todo
-  // O simplemente:
-  navigate('/login');
-};
+  const handleLogout = () => {
+    // Dispatch logout action
+    dispatch(logout());
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -74,7 +87,7 @@ const handleLogout = () => {
             {/* Profile Picture */}
             <div className="w-40 h-48 rounded-full flex-shrink-0 overflow-hidden border-4 border-gray-200">
               <img 
-                src="https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg" 
+                src={user?.avatar || editForm.avatar}
                 alt="Profile" 
                 className="w-full h-full object-cover"
               />
@@ -83,8 +96,8 @@ const handleLogout = () => {
             {/* Info and Stats */}
             <div className="flex-1">
               <div className="mb-4">
-                <h1 className="text-3xl font-bold text-gray-900">Alex</h1>
-                <p className="text-gray-600 text-lg">@Alex_S</p>
+                <h1 className="text-3xl font-bold text-gray-900">{user?.firstName || editForm.firstName}</h1>
+                <p className="text-gray-600 text-lg">@{user?.userName || editForm.userName}</p>
               </div>
               
               <div className="flex gap-12">
@@ -99,10 +112,10 @@ const handleLogout = () => {
               </div>
             </div>
             
-            {/* 👇 BOTÓN EDIT PROFILE */}
+            {/* Edit Profile Button */}
             <button 
               className="px-8 py-3 bg-gray-200 rounded-lg text-gray-800 font-semibold transition-colors hover:bg-[#7c6593] hover:text-white"
-              onClick={() => setIsEditModalOpen(true)}
+              onClick={() => dispatch(openEditProfileModal())}
             >
               Edit Profile
             </button>
@@ -112,13 +125,13 @@ const handleLogout = () => {
           <div className="md:hidden">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h1 className="text-4xl font-bold text-gray-900">Alex</h1>
-                <p className="text-gray-400 text-xl">@Alex_S</p>
+                <h1 className="text-4xl font-bold text-gray-900">{user?.firstName || editForm.firstName}</h1>
+                <p className="text-gray-400 text-xl">@{user?.userName || editForm.userName}</p>
               </div>
               
               <button 
                 className="px-6 py-2 bg-gray-200 rounded-lg text-gray-800 font-semibold transition-colors text-sm hover:bg-[#7c6593] hover:text-white"
-                onClick={() => setIsEditModalOpen(true)}
+                onClick={() => dispatch(openEditProfileModal())}
               >
                 Edit Profile
               </button>
@@ -241,7 +254,7 @@ const handleLogout = () => {
               className="w-full h-full object-cover"
             />
           </div>
-          
+         
           <div className="aspect-[3/4] overflow-hidden">
             <img 
               src="https://i.pinimg.com/736x/7f/01/78/7f017860c8448b7318ac3e59ca866713.jpg" 
@@ -284,24 +297,24 @@ const handleLogout = () => {
         </div>
       </div>
 
-      {/* 👇 MODAL CON FONDO TRANSPARENTE */}
+      {/* ===== EDIT PROFILE MODAL ===== */}
       {isEditModalOpen && (
-            <div 
-              className={`fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 transition-all duration-300 ${
-                isModalVisible ? 'opacity-100' : 'opacity-0'
-              }`}
-              onClick={closeModal}
-            >
+        <div 
+          className={`fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 transition-all duration-300 ${
+            isModalVisible ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={closeModal}
+        >
           <div 
             className={`bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl transition-all duration-300 transform ${
               isModalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Título del Modal */}
+            {/* Modal Title */}
             <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">EDIT PROFILE</h2>
             
-            {/* Sección Avatar */}
+            {/* Avatar Section */}
             <div className="text-center mb-6">
               <img 
                 src={editForm.avatar} 
@@ -313,9 +326,9 @@ const handleLogout = () => {
               </button>
             </div>
 
-            {/* Formulario de Edición */}
+            {/* Edit Form */}
             <div className="space-y-4">
-              {/* Campo First Name */}
+              {/* First Name Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">
                   First Name
@@ -328,7 +341,7 @@ const handleLogout = () => {
                 />
               </div>
 
-              {/* Campo User */}
+              {/* User Name Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">
                   User
@@ -341,7 +354,7 @@ const handleLogout = () => {
                 />
               </div>
 
-              {/* Campo Location */}
+              {/* Location Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">
                   Location
@@ -355,7 +368,7 @@ const handleLogout = () => {
               </div>
             </div>
 
-            {/* Botones de Acción */}
+            {/* Action Buttons */}
             <div className="flex gap-3 mt-8">
               <button
                 onClick={handleSaveChanges}
@@ -379,7 +392,3 @@ const handleLogout = () => {
 }
 
 export default ProfilePage;
-
-
-
-
