@@ -1,103 +1,166 @@
 import { NavLink } from 'react-router-dom';
+import { type ReactNode } from 'react';
 import nookLogo from "../assets/nook.png";
-import { Home, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Home, Search, Plus, Bell, CircleUserRound, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-function NavBar() {
-    const [isOpen, setIsOpen] = useState(false);
+/**
+ * NavBar Component Props
+ */
+interface NavBarProps {
+  onCreateClick: () => void;
+}
 
-    const toggleMenu = () => {
-        setIsOpen(!isOpen);
-    };
+/**
+ * Navigation item types
+ */
+type NavItemLink = {
+  type: 'link';
+  to: string;
+  label: string;
+  icon: ReactNode;
+};
 
-    return (
-        <>
-            {/* Botón para abrir/cerrar en móvil */}
-            <button
-                onClick={toggleMenu}
-                className="fixed top-4 left-4 z-50 bg-black text-white p-2 rounded-md lg:hidden"
-            >
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+type NavItemButton = {
+  type: 'button';
+  onClick: () => void;
+  label: string;
+  icon: ReactNode;
+};
 
-            {/* Barra de navegación */}
-            <aside className={`
-                fixed top-0 left-0 h-full w-64 bg-black text-white flex flex-col items-center py-10 space-y-10 px-6
-                transition-transform duration-300 z-40
-                lg:translate-x-0
-                ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}>
-                
-                <img src={nookLogo} alt="Logo Nook" className="w-24" />
-                
-                <nav className='flex flex-col gap-6 w-full'>
-                    <NavLink
-                        to="/"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400 flex items-center gap-3 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        <Home size={24} />
-                        Home
-                    </NavLink>
+type NavItem = NavItemLink | NavItemButton;
 
-                    <NavLink
-                        to="/searchPage"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        Search
-                    </NavLink>
+/**
+ * Responsive navigation sidebar component.
+ * Expands automatically on desktop and toggles visibility on mobile.
+ */
+function NavBar({ onCreateClick }: NavBarProps) {
+  /** State for mobile menu visibility */
+  const [isOpen, setIsOpen] = useState(false);
 
-                    <NavLink
-                        to="/notifications"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        Notifications
-                    </NavLink>
+  /** State to detect if the user is on a desktop screen */
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-                    <NavLink
-                        to="/createPost"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        Create
-                    </NavLink>
+  /** Toggles the mobile menu open or closed */
+  const toggleMenu = () => setIsOpen(!isOpen);
 
-                    <NavLink
-                        to="/profile"
-                        end
-                        className={({ isActive }) =>
-                            `hover:text-purple-400 ${isActive ? 'text-white font-semibold' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                    >
-                        Profile
-                    </NavLink>
-                </nav>
-            </aside>
+  /**
+   * Updates `isDesktop` state when the window is resized.
+   * Cleans up the event listener on component unmount.
+   */
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-            
-            {isOpen && (
-                <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-                    onClick={() => setIsOpen(false)}
-                />
-            )}
-        </>
-    );
+  // Navigation items configuration
+  const navItems: NavItem[] = [
+    { type: 'link', to: '/', label: 'Home', icon: <Home /> },
+    { type: 'link', to: '/searchFunction', label: 'Search', icon: <Search /> },
+    { type: 'button', onClick: onCreateClick, label: 'Create', icon: <Plus /> },
+    { type: 'link', to: '/notifications', label: 'Notifications', icon: <Bell /> },
+    { type: 'link', to: '/profile', label: 'Profile', icon: <CircleUserRound /> },
+  ];
+
+  return (
+    <>
+      {/* Sidebar container */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-full bg-black text-white flex flex-col items-center py-6 transition-all duration-300 z-50
+          ${isDesktop ? 'w-64' : isOpen ? 'w-40' : 'w-16'}
+        `}
+      >
+        {/* Menu button (only visible on mobile) */}
+        {!isDesktop && (
+          <button
+            onClick={toggleMenu}
+            className="bg-gray-900 p-2 rounded-md hover:bg-gray-800 transition mb-6"
+          >
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        )}
+
+        {/* Logo (visible when expanded or on desktop) */}
+        {(isOpen || isDesktop) && (
+          <img
+            src={nookLogo}
+            alt="Nook Logo"
+            className={`transition-all duration-300 mb-8 
+              ${isDesktop ? 'w-28' : 'w-16'}`}
+          />
+        )}
+
+        {/* Navigation links */}
+        <nav
+          className={`
+            flex flex-col w-full px-2
+            ${isDesktop ? 'gap-12' : 'gap-8'}
+          `}
+        >
+          {navItems.map((item) => (
+            item.type === 'button' ? (
+              // ===== CREATE BUTTON (MODAL TRIGGER) =====
+              <button
+                key={item.label}
+                onClick={() => {
+                  item.onClick();
+                  if (!isDesktop) setIsOpen(false); // Close menu on mobile after click
+                }}
+                className={`
+                  flex items-center gap-3 hover:text-purple-400 px-2 transition-colors
+                  ${isDesktop ? 'text-lg font-medium' : 'text-base'}
+                `}
+              >
+                {/* Icon size adjusts between mobile and desktop */}
+                <div className={`${isDesktop ? 'scale-125' : 'scale-100'} transition-transform`}>
+                  {item.icon}
+                </div>
+
+                {/* Label fades in/out depending on sidebar state */}
+                <span
+                  className={`
+                    overflow-hidden transition-all duration-300
+                    ${isOpen || isDesktop ? 'opacity-100 w-auto' : 'opacity-0 w-0'}
+                  `}
+                >
+                  {item.label}
+                </span>
+              </button>
+            ) : (
+              // ===== REGULAR NAVIGATION LINKS =====
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 hover:text-purple-400 px-2 transition-colors ${
+                    isActive ? 'text-purple-300' : ''
+                  } ${isDesktop ? 'text-lg font-medium' : 'text-base'}`
+                }
+                onClick={() => !isDesktop && setIsOpen(false)} // Closes menu after click on mobile
+              >
+                {/* Icon size adjusts between mobile and desktop */}
+                <div className={`${isDesktop ? 'scale-125' : 'scale-100'} transition-transform`}>
+                  {item.icon}
+                </div>
+
+                {/* Label fades in/out depending on sidebar state */}
+                <span
+                  className={`
+                    overflow-hidden transition-all duration-300
+                    ${isOpen || isDesktop ? 'opacity-100 w-auto' : 'opacity-0 w-0'}
+                  `}
+                >
+                  {item.label}
+                </span>
+              </NavLink>
+            )
+          ))}
+        </nav>
+      </aside>
+    </>
+  );
 }
 
 export default NavBar;
