@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "name": "Juan Pérez",
+    "username": "@juan.perez_01",
+    "isFollowing": false,
+    "profileImg": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+  },
+  {
+    "id": 2,
+    "name": "Ana Martinez",
+    "username": "@ana.miz_",
+    "isFollowing": false,
+    "profileImg": "https://st5.depositphotos.com/1049680/75186/i/450/depositphotos_751861732-stock-photo-smiling-young-hispanic-woman-stylish.jpg"
+  },
+  {
+    "id": 3,
+    "name": "María Gómez",
+    "username": "@maria_gmz",
+    "isFollowing": false,
+    "profileImg": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
+  },
+  {
+    "id": 4,
+    "name": "Carlos Rodríguez",
+    "username": "@carlos.rodz",
+    "isFollowing": false,
+    "profileImg": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+  }
+]
