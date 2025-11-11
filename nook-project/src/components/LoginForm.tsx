@@ -19,8 +19,6 @@ function LoginForm({ onLogin }: LoginFormProps) {
   };
 
   const handleLogin = () => {
-    // Simplemente llama a onLogin sin validación estricta (para testing)
-    // Puedes agregar validación después si quieres
     onLogin?.(formData.username, formData.password);
   };
 
