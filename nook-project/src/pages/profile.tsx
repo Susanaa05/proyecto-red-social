@@ -54,10 +54,13 @@ function ProfilePage() {
     closeModal(); 
   };
 
-  const handleLogout = () => {
-    console.log('Cerrando sesión...');
-    navigate('/login');
-  };
+const handleLogout = () => {
+  console.log('Cerrando sesión...');
+  // Si quieres que vuelva a pedir login, puedes usar:
+  window.location.href = '/login'; // Esto recarga la página y resetea todo
+  // O simplemente:
+  navigate('/login');
+};
 
   return (
     <div className="min-h-screen bg-white">
