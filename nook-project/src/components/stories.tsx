@@ -1,7 +1,12 @@
-import React from "react";
+// components/stories.tsx
+import React, { useState } from "react";
 
 // Component that displays user stories (similar to Instagram or Facebook)
-const Stories: React.FC = () => {
+interface StoriesProps {
+  onStoryClick?: (story: any) => void;
+}
+
+const Stories: React.FC<StoriesProps> = ({ onStoryClick }) => {
   // Array containing story data: id, user name, story image, and profile image
   const stories = [
     {
@@ -37,6 +42,10 @@ const Stories: React.FC = () => {
     },
   ];
 
+  const handleStoryClick = (story: any) => {
+    onStoryClick?.(story);
+  };
+
   return (
     // Horizontal scrollable container for stories
     <div
@@ -49,6 +58,7 @@ const Stories: React.FC = () => {
       {stories.map((story) => (
         <div
           key={story.id}
+          onClick={() => handleStoryClick(story)}
           className="
             relative flex-shrink-0 rounded-xl overflow-hidden shadow-md cursor-pointer
             transition-transform hover:scale-105 snap-start
