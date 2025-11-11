@@ -10,8 +10,6 @@ function Login({ onLoginSuccess }: LoginProps) {
   const handleLogin = (username: string, password: string) => {
     console.log('Login attempt:', { username, password });
     
-    // 👇 Llama a onLoginSuccess sin importar qué escriba (para testing)
-    // Puedes agregar validación después: if (username === 'admin' && password === '1234')
     onLoginSuccess?.();
   };
 

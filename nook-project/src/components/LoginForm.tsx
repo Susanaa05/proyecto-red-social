@@ -1,4 +1,5 @@
 import { useState } from "react";
+import nookLogo from "../assets/nook2.png";
 
 interface LoginFormProps {
   onLogin?: (username: string, password: string) => void;
@@ -18,7 +19,7 @@ function LoginForm({ onLogin }: LoginFormProps) {
   };
 
   const handleLogin = () => {
-    // 👇 Simplemente llama a onLogin sin validación estricta (para testing)
+    // Simplemente llama a onLogin sin validación estricta (para testing)
     // Puedes agregar validación después si quieres
     onLogin?.(formData.username, formData.password);
   };
@@ -31,14 +32,13 @@ function LoginForm({ onLogin }: LoginFormProps) {
 
   return (
     <div className="w-full max-w-md">
-      {/* Logo */}
+
       <div className="mb-12 text-center lg:text-right">
-        <h1 
-          className="text-white font-black text-7xl tracking-tight" 
-          style={{ fontFamily: 'Arial Black, sans-serif' }}
-        >
-          nook
-        </h1>
+        <img
+          src={nookLogo}
+          alt="Nook Logo"
+        />
+
       </div>
 
       {/* Login Form */}
@@ -86,7 +86,7 @@ function LoginForm({ onLogin }: LoginFormProps) {
           >
             Forgot your password?
           </button>
-          
+
           <div className="text-white text-base">
             Don't have an account?{' '}
             <button
