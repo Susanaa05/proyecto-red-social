@@ -1,3 +1,4 @@
+// pages/home.tsx
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import FeedHeader from "../components/feedheader";
@@ -5,22 +6,83 @@ import Stories from "../components/stories";
 import FeedFilters from "../components/feedFilters";
 import SuggestedUsers from "../components/SuggestedUsers";
 import Post from "../components/Post";
+import StoryModal from "../components/StoryModal";
 import { useAppSelector } from "../store/hooks";
 
 function Home() {
   const location = useLocation();
   const selectedPlace = location.state?.selectedPlace || null;
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [activeFilter, setActiveFilter] = useState("following");
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   
   // Get posts from Redux store
   const posts = useAppSelector((state) => state.posts.posts);
 
-  const filteredPosts = selectedPlace
+  // Datos de las stories (los mismos que en Stories.tsx)
+  const stories = [
+    {
+      id: 1,
+      name: "Mia Park",
+      storyImg: "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?w=800",
+      profileImg: "https://i.pinimg.com/1200x/d8/f8/b4/d8f8b4f591c29fb209c4a7dc33160dd5.jpg",
+    },
+    {
+      id: 2,
+      name: "Andre Lee",
+      storyImg: "https://i.pinimg.com/1200x/fb/3a/a4/fb3aa460fecd3b0a68e30c13e8c74d51.jpg",
+      profileImg: "https://i.pinimg.com/1200x/3e/f3/50/3ef350dc86cc82a092463e5d795654b5.jpg",
+    },
+    {
+      id: 3,
+      name: "Luna Kim",
+      storyImg: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+      profileImg: "https://i.pinimg.com/1200x/f5/9c/90/f59c9088e58a7baaa3b463ddca7dbab2.jpg",
+    },
+    {
+      id: 4,
+      name: "Alex Rivera",
+      storyImg: "https://i.pinimg.com/1200x/b4/5c/b7/b45cb75c5071e17ea3cefb99f8b85b80.jpg",
+      profileImg: "https://i.pinimg.com/736x/3c/2b/ad/3c2badd0b9688bcb810ef699afc3f7c1.jpg",
+    },
+  ];
+
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+  };
+
+  const handleStoryClick = (story: any) => {
+    const storyIndex = stories.findIndex(s => s.id === story.id);
+    setSelectedStoryIndex(storyIndex);
+    setIsStoryModalOpen(true);
+  };
+
+  const handleCloseStoryModal = () => {
+    setIsStoryModalOpen(false);
+  };
+
+  // ... (el resto del código de filtrado permanece igual)
+  const placeFilteredPosts = selectedPlace
     ? posts.filter((post) =>
-      post.title.toLowerCase().includes(selectedPlace.toLowerCase()) ||
-      post.description.toLowerCase().includes(selectedPlace.toLowerCase())
-    )
+        post.title.toLowerCase().includes(selectedPlace.toLowerCase()) ||
+        post.description.toLowerCase().includes(selectedPlace.toLowerCase())
+      )
     : posts;
+
+  const filteredPosts = (() => {
+    switch (activeFilter) {
+      case "trending":
+        return [...placeFilteredPosts].sort((a, b) => b.visitors.length - a.visitors.length);
+      case "near":
+        return placeFilteredPosts.filter(post => 
+          post.location && post.location.toLowerCase().includes("cali")
+        );
+      case "following":
+      default:
+        return placeFilteredPosts;
+    }
+  })();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -42,12 +104,15 @@ function Home() {
               <h2 className="text-base font-semibold text-gray-800 px-1">
                 Stories
               </h2>
-              <Stories />
+              <Stories onStoryClick={handleStoryClick} />
             </div>
 
-            <FeedFilters />
+            <FeedFilters 
+              activeFilter={activeFilter} 
+              onFilterChange={handleFilterChange} 
+            />
 
-            {/* ===== POSTS MOBILE - Responsive ===== */}
+            {/* ===== POSTS MOBILE ===== */}
             <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
               {filteredPosts.map((post) => (
                 <div
@@ -65,7 +130,10 @@ function Home() {
               ))}
               {filteredPosts.length === 0 && (
                 <p className="text-gray-500 text-center mt-10">
-                  No results found for "{selectedPlace}"
+                  {selectedPlace 
+                    ? `No results found for "${selectedPlace}" in ${activeFilter}`
+                    : `No posts found in ${activeFilter}`
+                  }
                 </p>
               )}
             </div>
@@ -75,7 +143,10 @@ function Home() {
             {/* ===== DESKTOP ===== */}
             <div className="flex flex-col gap-4">
               <FeedHeader />
-              <FeedFilters />
+              <FeedFilters 
+                activeFilter={activeFilter} 
+                onFilterChange={handleFilterChange} 
+              />
             </div>
 
             <div className="flex flex-col-reverse lg:flex-row justify-between gap-6">
@@ -91,6 +162,14 @@ function Home() {
                     visitors={post.visitors}
                   />
                 ))}
+                {filteredPosts.length === 0 && (
+                  <p className="text-gray-500 text-center mt-10">
+                    {selectedPlace 
+                      ? `No results found for "${selectedPlace}" in ${activeFilter}`
+                      : `No posts found in ${activeFilter}`
+                    }
+                  </p>
+                )}
               </div>
 
               {/* COLUMNA DERECHA - STORIES + SUGGESTED */}
@@ -98,7 +177,7 @@ function Home() {
                 <h2 className="text-base font-semibold text-gray-800 mb-2">
                   Stories
                 </h2>
-                <Stories />
+                <Stories onStoryClick={handleStoryClick} />
 
                 {/* SUGERIDOS SOLO EN DESKTOP */}
                 <div className="mt-6 hidden md:block">
@@ -108,6 +187,14 @@ function Home() {
             </div>
           </>
         )}
+
+        {/* MODAL DE STORIES */}
+        <StoryModal
+          isOpen={isStoryModalOpen}
+          onClose={handleCloseStoryModal}
+          stories={stories}
+          initialStoryIndex={selectedStoryIndex}
+        />
       </div>
     </div>
   );
