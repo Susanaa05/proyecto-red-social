@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { Home, Map, Search, Bell, PlusCircle, User } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Home, Map, Search, Bell, PlusCircle, User, Camera } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logout, updateProfile } from '../store/authSlice';
 import { openEditProfileModal, closeEditProfileModal } from '../store/uiSlice';
@@ -8,10 +8,14 @@ import { openEditProfileModal, closeEditProfileModal } from '../store/uiSlice';
 function ProfilePage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Get user data and modal state from Redux
   const user = useAppSelector((state) => state.auth.user);
   const isEditModalOpen = useAppSelector((state) => state.ui.isEditProfileModalOpen);
+  
+  // Nuevo estado para el filtro activo
+  const [activeFilter, setActiveFilter] = useState('all');
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -20,6 +24,9 @@ function ProfilePage() {
     location: user?.location || 'Cali, Colombia',
     avatar: user?.avatar || 'https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg'
   });
+
+  // Estado para la preview de la nueva imagen
+  const [avatarPreview, setAvatarPreview] = useState<string>(editForm.avatar);
 
   const menuItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -30,6 +37,60 @@ function ProfilePage() {
     { path: '/profile', icon: User, label: 'Profile' },
   ];
 
+  // Datos de ejemplo para los posts del perfil con ubicaciones
+  const profilePosts = [
+    {
+      id: 1,
+      image: "https://i.pinimg.com/1200x/1b/03/07/1b0307811f10ba4453af49f6da9f4bc3.jpg",
+      location: "San Antonio"
+    },
+    {
+      id: 2,
+      image: "https://i.pinimg.com/736x/69/e6/d7/69e6d75b2b3654559138638390c21a56.jpg",
+      location: "Tierradentro"
+    },
+    {
+      id: 3,
+      image: "https://i.pinimg.com/736x/28/51/f2/2851f21b7f2eddc6aa6d6cce6b91c78d.jpg",
+      location: "San Antonio"
+    },
+    {
+      id: 4,
+      image: "https://i.pinimg.com/736x/61/5a/8a/615a8a32c8abe60efccf2b37997c2571.jpg",
+      location: "Lengua de Mariposa"
+    },
+    {
+      id: 5,
+      image: "https://i.pinimg.com/736x/7f/01/78/7f017860c8448b7318ac3e59ca866713.jpg",
+      location: "Tierradentro"
+    },
+    {
+      id: 6,
+      image: "https://i.pinimg.com/736x/92/b8/1d/92b81d5d9ba8186e8800556d5cd5fdcf.jpg",
+      location: "San Antonio"
+    },
+    {
+      id: 7,
+      image: "https://i.pinimg.com/736x/b0/d4/52/b0d452428acb1e999a3611169c820717.jpg",
+      location: "Lengua de Mariposa"
+    },
+    {
+      id: 8,
+      image: "https://i.pinimg.com/1200x/98/07/fb/9807fb2ab484f3e6f447076bb88f7f28.jpg",
+      location: "Tierradentro"
+    },
+    {
+      id: 9,
+      image: "https://i.pinimg.com/1200x/75/94/01/7594012b4b3bad6323f02747fe5a6e12.jpg",
+      location: "San Antonio"
+    }
+  ];
+
+  // Filtrar posts según el filtro activo
+  const filteredPosts = activeFilter === 'all' 
+    ? profilePosts 
+    : profilePosts.filter(post => post.location === activeFilter);
+
   // Update edit form when user data changes
   useEffect(() => {
     if (user) {
@@ -39,6 +100,7 @@ function ProfilePage() {
         location: user.location,
         avatar: user.avatar,
       });
+      setAvatarPreview(user.avatar);
     }
   }, [user]);
 
@@ -63,6 +125,53 @@ function ProfilePage() {
     }));
   };
 
+  // Función para manejar el cambio de foto de perfil
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validar que sea una imagen
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      // Validar tamaño del archivo (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+
+      // Crear URL temporal para la preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newAvatarUrl = e.target?.result as string;
+        setAvatarPreview(newAvatarUrl);
+        setEditForm(prev => ({ ...prev, avatar: newAvatarUrl }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Función para abrir el selector de archivos
+  const handleChangePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Función para usar una foto de ejemplo (para testing)
+  const handleUseSamplePhoto = () => {
+    const samplePhotos = [
+      'https://i.pinimg.com/736x/d8/f8/b4/d8f8b4f591c29fb209c4a7dc33160dd5.jpg',
+      'https://i.pinimg.com/736x/3e/f3/50/3ef350dc86cc82a092463e5d795654b5.jpg',
+      'https://i.pinimg.com/736x/f5/9c/90/f59c9088e58a7baaa3b463ddca7dbab2.jpg',
+      'https://i.pinimg.com/736x/3c/2b/ad/3c2badd0b9688bcb810ef699afc3f7c1.jpg',
+      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face'
+    ];
+    
+    const randomPhoto = samplePhotos[Math.floor(Math.random() * samplePhotos.length)];
+    setAvatarPreview(randomPhoto);
+    setEditForm(prev => ({ ...prev, avatar: randomPhoto }));
+  };
+
   const handleSaveChanges = () => {
     // Dispatch action to update user profile in Redux
     dispatch(updateProfile(editForm));
@@ -85,12 +194,16 @@ function ProfilePage() {
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center gap-8">
             {/* Profile Picture */}
-            <div className="w-40 h-48 rounded-full flex-shrink-0 overflow-hidden border-4 border-gray-200">
+            <div className="w-40 h-48 rounded-full flex-shrink-0 overflow-hidden border-4 border-gray-200 relative group">
               <img 
                 src={user?.avatar || editForm.avatar}
                 alt="Profile" 
                 className="w-full h-full object-cover"
               />
+              {/* Overlay para cambiar foto en el perfil principal */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <Camera className="text-white w-8 h-8" />
+              </div>
             </div>
             
             {/* Info and Stats */}
@@ -198,23 +311,45 @@ function ProfilePage() {
           <h2 className="text-xl font-bold mb-4 text-gray-900">Places</h2>
           <div className="flex flex-wrap gap-3">
             <button 
-              className="px-8 py-3 text-white rounded-full font-medium transition-colors flex items-center gap-2 text-lg" 
-              style={{backgroundColor: '#7c6593'}}
+              onClick={() => setActiveFilter('all')}
+              className={`px-8 py-3 rounded-full font-medium transition-colors flex items-center gap-2 text-lg ${
+                activeFilter === 'all' 
+                  ? 'text-white bg-[#7c6593]' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-[#7c6593] hover:text-white'
+              }`}
             >
               <span>🌐</span> All
             </button>
+            
             <button 
-              className="px-8 py-3 bg-gray-200 text-gray-700 rounded-full font-medium transition-colors text-lg hover:bg-[#7c6593] hover:text-white"
+              onClick={() => setActiveFilter('San Antonio')}
+              className={`px-8 py-3 rounded-full font-medium transition-colors text-lg ${
+                activeFilter === 'San Antonio'
+                  ? 'text-white bg-[#7c6593]' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-[#7c6593] hover:text-white'
+              }`}
             >
               San Antonio
             </button>
+            
             <button 
-              className="px-8 py-3 bg-gray-200 text-gray-700 rounded-full font-medium transition-colors text-lg hover:bg-[#7c6593] hover:text-white"
+              onClick={() => setActiveFilter('Tierradentro')}
+              className={`px-8 py-3 rounded-full font-medium transition-colors text-lg ${
+                activeFilter === 'Tierradentro'
+                  ? 'text-white bg-[#7c6593]' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-[#7c6593] hover:text-white'
+              }`}
             >
               Tierradentro
             </button>
+            
             <button 
-              className="px-8 py-3 bg-gray-200 text-gray-700 rounded-full font-medium transition-colors text-lg hover:bg-[#7c6593] hover:text-white"
+              onClick={() => setActiveFilter('Lengua de Mariposa')}
+              className={`px-8 py-3 rounded-full font-medium transition-colors text-lg ${
+                activeFilter === 'Lengua de Mariposa'
+                  ? 'text-white bg-[#7c6593]' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-[#7c6593] hover:text-white'
+              }`}
             >
               Lengua de Mariposa
             </button>
@@ -223,77 +358,35 @@ function ProfilePage() {
 
         {/* Posts Grid - Instagram Style 4 Columns */}
         <div className="grid grid-cols-4 gap-1">
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/1200x/1b/03/07/1b0307811f10ba4453af49f6da9f4bc3.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
+          {filteredPosts.map((post) => (
+            <div key={post.id} className="aspect-[3/4] overflow-hidden relative group">
+              <img 
+                src={post.image} 
+                alt={`Post from ${post.location}`} 
+                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+              />
+              
+              {/* Overlay con información de ubicación al hacer hover */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-end justify-start p-2">
+                <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {post.location}
+                </span>
+              </div>
+            </div>
+          ))}
           
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/736x/69/e6/d7/69e6d75b2b3654559138638390c21a56.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/736x/28/51/f2/2851f21b7f2eddc6aa6d6cce6b91c78d.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/736x/61/5a/8a/615a8a32c8abe60efccf2b37997c2571.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-         
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/736x/7f/01/78/7f017860c8448b7318ac3e59ca866713.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/736x/92/b8/1d/92b81d5d9ba8186e8800556d5cd5fdcf.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/736x/b0/d4/52/b0d452428acb1e999a3611169c820717.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/1200x/98/07/fb/9807fb2ab484f3e6f447076bb88f7f28.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
-          <div className="aspect-[3/4] overflow-hidden">
-            <img 
-              src="https://i.pinimg.com/1200x/75/94/01/7594012b4b3bad6323f02747fe5a6e12.jpg" 
-              alt="Post" 
-              className="w-full h-full object-cover"
-            />
-          </div>
+          {/* Mensaje si no hay posts con el filtro seleccionado */}
+          {filteredPosts.length === 0 && (
+            <div className="col-span-4 text-center py-12">
+              <p className="text-gray-500 text-lg">No posts found for "{activeFilter}"</p>
+              <button 
+                onClick={() => setActiveFilter('all')}
+                className="mt-2 text-[#7c6593] hover:text-[#6a5478] font-medium"
+              >
+                Show all posts
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -314,16 +407,42 @@ function ProfilePage() {
             {/* Modal Title */}
             <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">EDIT PROFILE</h2>
             
-            {/* Avatar Section */}
+            {/* Avatar Section - MEJORADO */}
             <div className="text-center mb-6">
-              <img 
-                src={editForm.avatar} 
-                alt="Avatar" 
-                className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border border-gray-200"
+              <div className="relative inline-block">
+                <img 
+                  src={avatarPreview} 
+                  alt="Avatar" 
+                  className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-2 border-gray-200"
+                />
+                <div className="absolute bottom-2 right-2 bg-[#7c6593] rounded-full p-2 cursor-pointer hover:bg-[#6a5478] transition-colors">
+                  <Camera size={16} className="text-white" />
+                </div>
+              </div>
+              
+              {/* Input file oculto */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarChange}
+                accept="image/*"
+                className="hidden"
               />
-              <button className="text-[#7c6593] font-medium hover:text-[#5a4569] transition-colors duration-200 text-sm">
-                Change profile picture
-              </button>
+              
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={handleChangePhotoClick}
+                  className="text-[#7c6593] font-medium hover:text-[#5a4569] transition-colors duration-200 text-sm"
+                >
+                  Change profile picture
+                </button>
+                <button 
+                  onClick={handleUseSamplePhoto}
+                  className="text-gray-500 font-medium hover:text-gray-700 transition-colors duration-200 text-xs"
+                >
+                  Use sample photo
+                </button>
+              </div>
             </div>
 
             {/* Edit Form */}
