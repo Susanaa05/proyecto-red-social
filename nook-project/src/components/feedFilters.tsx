@@ -1,24 +1,21 @@
-// components/feedFilters.tsx
+import { useState } from "react";
 import { TrendingUp, MapPin } from "lucide-react";
 
 /**
  * FeedFilters Component
  * Displays buttons to filter the feed: Following, Trending, Near.
  */
+const FeedFilters = () => {
+  // Tracks the currently active filter
+  const [active, setActive] = useState("following");
 
-interface FeedFiltersProps {
-  activeFilter: string;
-  onFilterChange: (filter: string) => void;
-}
-
-const FeedFilters = ({ activeFilter, onFilterChange }: FeedFiltersProps) => {
   // Base styles for all buttons
   const baseButton =
     "flex items-center justify-center gap-2 px-5 py-2 rounded-full font-semibold transition-all duration-200 text-sm sm:text-base flex-shrink-0";
 
   // Returns styles depending on which button is active
   const getButtonClass = (type: string) =>
-    activeFilter === type
+    active === type
       ? "bg-[#7C6AA6] text-white shadow-sm"
       : "bg-gray-200 text-gray-700 hover:bg-gray-300";
 
@@ -33,7 +30,7 @@ const FeedFilters = ({ activeFilter, onFilterChange }: FeedFiltersProps) => {
       >
         {/* Following button */}
         <button
-          onClick={() => onFilterChange("following")}
+          onClick={() => setActive("following")}
           className={`${baseButton} ${getButtonClass("following")}`}
         >
           Following
@@ -41,7 +38,7 @@ const FeedFilters = ({ activeFilter, onFilterChange }: FeedFiltersProps) => {
 
         {/* Trending button */}
         <button
-          onClick={() => onFilterChange("trending")}
+          onClick={() => setActive("trending")}
           className={`${baseButton} ${getButtonClass("trending")}`}
         >
           <TrendingUp size={18} />
@@ -50,7 +47,7 @@ const FeedFilters = ({ activeFilter, onFilterChange }: FeedFiltersProps) => {
 
         {/* Near button */}
         <button
-          onClick={() => onFilterChange("near")}
+          onClick={() => setActive("near")}
           className={`${baseButton} ${getButtonClass("near")}`}
         >
           <MapPin size={18} />

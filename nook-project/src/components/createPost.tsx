@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { ArrowLeft, MapPin, Hash, Music, Sliders, Type, Upload, X } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, MapPin, Hash, Music, Sliders, Type } from "lucide-react";
 import { useAppDispatch } from "../store/hooks";
 import { addPost } from "../store/postsSlice";
 
@@ -15,7 +15,6 @@ interface CreatePostProps {
 
 function CreatePost({ isOpen, onClose }: CreatePostProps) {
   const dispatch = useAppDispatch();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Current step: 'upload' or 'details'
   const [step, setStep] = useState<'upload' | 'details'>('upload');
@@ -30,74 +29,12 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
     location: "",
   });
 
-  // Estado para el drag & drop
-  const [isDragging, setIsDragging] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string>("");
-
   /**
-   * Handles file selection
+   * Handles image URL input and moves to details step
    */
-  const handleFileSelect = (file: File) => {
-    // Validar que sea una imagen
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (JPEG, PNG, etc.)');
-      return;
-    }
-
-    // Validar tamaño (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Image size should be less than 10MB');
-      return;
-    }
-
-    // Crear preview y avanzar al siguiente paso
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageUrl = e.target?.result as string;
-      setImagePreview(imageUrl);
-      setFormData((prev) => ({ ...prev, image: imageUrl }));
-      setStep('details');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  /**
-   * Handles file input change
-   */
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  /**
-   * Handles drag over event
-   */
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  /**
-   * Handles drag leave event
-   */
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  /**
-   * Handles drop event
-   */
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFileSelect(files[0]);
-    }
+  const handleImageUpload = (url: string) => {
+    setFormData((prev) => ({ ...prev, image: url }));
+    setStep('details');
   };
 
   /**
@@ -105,26 +42,18 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
    */
   const handleBack = () => {
     setStep('upload');
-    setImagePreview("");
-    setFormData(prev => ({ ...prev, image: "" }));
   };
 
   /**
    * Handles form submission - Creates new post in Redux store
    */
   const handleShare = () => {
-    // Validar que haya una imagen
-    if (!formData.image) {
-      alert('Please select an image first');
-      return;
-    }
-
     // Create new post object
     const newPost = {
       id: Date.now(), // Simple ID generation (use UUID in production)
       image: formData.image,
-      title: formData.title || "Untitled",
-      category: formData.category || "General",
+      title: formData.title,
+      category: formData.category,
       description: formData.description,
       visitors: [], // Empty visitors array for new posts
       tags: formData.tags,
@@ -136,21 +65,7 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
 
     // Reset form and close modal
     setStep('upload');
-    setImagePreview("");
-    setFormData({ 
-      image: "", 
-      title: "", 
-      category: "", 
-      description: "", 
-      tags: "", 
-      location: "" 
-    });
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    
+    setFormData({ image: "", title: "", category: "", description: "", tags: "", location: "" });
     onClose();
   };
 
@@ -159,13 +74,6 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
    */
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  /**
-   * Opens file selector
-   */
-  const handleSelectFile = () => {
-    fileInputRef.current?.click();
   };
 
   // Don't render if modal is not open
@@ -189,80 +97,55 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
               onClick={onClose}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <X size={20} className="text-gray-600" />
+              <svg
+                className="w-6 h-6 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
 
             {/* Header */}
             <h2 className="text-center text-lg font-bold text-gray-900 mb-8">
-              CREATE NEW POST
+              NEW POST
             </h2>
 
-            {/* Upload Area */}
+            {/* Upload Icon */}
             <div className="flex flex-col items-center mb-8">
-              {/* Drag & Drop Zone */}
-              <div
-                className={`
-                  w-28 h-28 border-4 border-dashed rounded-2xl flex flex-col items-center justify-center mb-6 cursor-pointer transition-all duration-200
-                  ${isDragging 
-                    ? 'border-[#7C6AA6] bg-[#7C6AA6]/10' 
-                    : 'border-gray-400 hover:border-[#7C6AA6] hover:bg-gray-50'
-                  }
-                `}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={handleSelectFile}
-              >
-                {isDragging ? (
-                  <div className="text-center">
-                    <Upload size={24} className="text-[#7C6AA6] mx-auto mb-2" />
-                    <span className="text-[#7C6AA6] text-xs font-medium">Drop here</span>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <svg
-                      className="w-8 h-8 text-gray-400 mx-auto mb-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" strokeWidth="2" />
-                      <path d="M21 15l-5-5L5 21" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    <span className="text-gray-500 text-xs">Upload</span>
-                  </div>
-                )}
+              <div className="w-28 h-28 border-4 border-gray-400 rounded-2xl flex items-center justify-center mb-6">
+                <svg
+                  className="w-16 h-16 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" strokeWidth="2" />
+                  <path d="M21 15l-5-5L5 21" strokeWidth="2" strokeLinecap="round" />
+                </svg>
               </div>
 
-              <p className="text-gray-900 text-lg font-medium mb-2 text-center">
-                Drag photos here
+              <p className="text-gray-900 text-lg font-medium mb-6">
+                Drag the photo here
               </p>
-              <p className="text-gray-500 text-sm text-center mb-6">
-                or select from your computer
-              </p>
-
-              {/* Hidden File Input */}
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileInputChange}
-                accept="image/*"
-                className="hidden"
-              />
 
               {/* Upload Button */}
               <button
-                onClick={handleSelectFile}
+                onClick={() => {
+                  const url = prompt("Enter image URL:");
+                  if (url) handleImageUpload(url);
+                }}
                 className="w-full bg-[#7C6AA6] text-white py-3 rounded-xl font-medium hover:bg-[#6a5478] transition-colors"
               >
-                Select from computer
+                Select from the computer
               </button>
-
-              {/* Format Info */}
-              <p className="text-gray-400 text-xs mt-4 text-center">
-                Supports: JPG, PNG, WEBP • Max: 10MB
-              </p>
             </div>
           </div>
         ) : (
@@ -279,7 +162,7 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
               >
                 <ArrowLeft size={24} className="text-gray-700" />
               </button>
-              <h2 className="text-lg font-bold text-gray-900">CREATE POST</h2>
+              <h2 className="text-lg font-bold text-gray-900">NEW POST</h2>
               <button
                 onClick={handleShare}
                 className="text-[#7C6AA6] font-semibold text-base hover:text-[#6a5478] transition-colors"
@@ -292,28 +175,10 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
             <div className="flex flex-col md:flex-row">
               {/* Left: Image Preview */}
               <div className="w-full md:w-1/2 p-6">
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full aspect-square object-cover rounded-2xl"
-                  />
-                  {/* Change Image Button */}
-                  <button
-                    onClick={handleSelectFile}
-                    className="absolute top-3 right-3 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
-                  >
-                    <Upload size={16} />
-                  </button>
-                </div>
-                
-                {/* Hidden File Input (para cambiar imagen) */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileInputChange}
-                  accept="image/*"
-                  className="hidden"
+                <img
+                  src={formData.image}
+                  alt="Preview"
+                  className="w-full aspect-square object-cover rounded-2xl"
                 />
               </div>
 
