@@ -47,7 +47,7 @@ function Home() {
 
             <FeedFilters />
 
-            {/* ===== POSTS MOBILE - Responsive ===== */}
+            {/* ===== POSTS MOBILE - RESPONSIVE ===== */}
             <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
               {filteredPosts.map((post) => (
                 <div
@@ -55,11 +55,14 @@ function Home() {
                   className="w-full rounded-2xl overflow-hidden shadow-md bg-white"
                 >
                   <Post
+                    // ⚠️ PROPS CRUCIALES AGREGADAS:
+                    id={post.id}                    // 🔑 NECESARIO para identificar el post
                     image={post.image}
                     title={post.title}
                     category={post.category}
                     description={post.description}
                     visitors={post.visitors}
+                    comments={post.comments || []}  // 💬 NECESARIO para mostrar comentarios
                   />
                 </div>
               ))}
@@ -84,11 +87,14 @@ function Home() {
                 {filteredPosts.map((post) => (
                   <Post
                     key={post.id}
+                    // ⚠️ PROPS CRUCIALES AGREGADAS:
+                    id={post.id}                    // 🔑 NECESARIO para identificar el post
                     image={post.image}
                     title={post.title}
                     category={post.category}
                     description={post.description}
                     visitors={post.visitors}
+                    comments={post.comments || []}  // 💬 NECESARIO para mostrar comentarios
                   />
                 ))}
               </div>
@@ -114,3 +120,4 @@ function Home() {
 }
 
 export default Home;
+

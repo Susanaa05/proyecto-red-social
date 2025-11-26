@@ -1,6 +1,18 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 /**
+ * Comment Interface
+ */
+export interface Comment {
+  id: string;
+  userId: string;
+  userAvatar: string;
+  username: string;
+  text: string;
+  timestamp: number;
+}
+
+/**
  * Post Interface
  */
 export interface Post {
@@ -12,6 +24,7 @@ export interface Post {
   visitors: string[];
   tags?: string;
   location?: string;
+  comments: Comment[]; // NEW: Add comments array
 }
 
 /**
@@ -53,7 +66,7 @@ const postsSlice = createSlice({
      * Add a new post
      */
     addPost: (state, action: PayloadAction<Post>) => {
-      state.posts.unshift(action.payload); // Add to the beginning
+      state.posts.unshift(action.payload);
     },
 
     /**
@@ -71,6 +84,31 @@ const postsSlice = createSlice({
      */
     deletePost: (state, action: PayloadAction<number>) => {
       state.posts = state.posts.filter(post => post.id !== action.payload);
+    },
+
+    /**
+     * ADD COMMENT TO POST
+     */
+    addComment: (state, action: PayloadAction<{ postId: number; comment: Comment }>) => {
+      const { postId, comment } = action.payload;
+      const post = state.posts.find(post => post.id === postId);
+      if (post) {
+        if (!post.comments) {
+          post.comments = [];
+        }
+        post.comments.push(comment);
+      }
+    },
+
+    /**
+     * DELETE COMMENT FROM POST
+     */
+    deleteComment: (state, action: PayloadAction<{ postId: number; commentId: string }>) => {
+      const { postId, commentId } = action.payload;
+      const post = state.posts.find(post => post.id === postId);
+      if (post && post.comments) {
+        post.comments = post.comments.filter(comment => comment.id !== commentId);
+      }
     },
 
     /**
@@ -95,6 +133,8 @@ export const {
   addPost,
   updatePost,
   deletePost,
+  addComment,
+  deleteComment,
   setLoading,
   setError,
 } = postsSlice.actions;
