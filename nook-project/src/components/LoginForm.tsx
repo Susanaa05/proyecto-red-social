@@ -1,5 +1,4 @@
 import { useState } from "react";
-import nookLogo from "../assets/nook2.png";
 
 interface LoginFormProps {
   onLogin?: (username: string, password: string) => void;
@@ -30,13 +29,14 @@ function LoginForm({ onLogin }: LoginFormProps) {
 
   return (
     <div className="w-full max-w-md">
-
+      {/* Logo */}
       <div className="mb-12 text-center lg:text-right">
-        <img
-          src={nookLogo}
-          alt="Nook Logo"
-        />
-
+        <h1 
+          className="text-white font-black text-7xl tracking-tight" 
+          style={{ fontFamily: 'Arial Black, sans-serif' }}
+        >
+          nook
+        </h1>
       </div>
 
       {/* Login Form */}
@@ -84,7 +84,7 @@ function LoginForm({ onLogin }: LoginFormProps) {
           >
             Forgot your password?
           </button>
-
+          
           <div className="text-white text-base">
             Don't have an account?{' '}
             <button
