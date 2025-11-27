@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { TrendingUp, MapPin } from "lucide-react";
 
+interface FeedFiltersProps {
+  onFilterChange?: (filter: string) => void;
+}
+
 /**
  * FeedFilters Component
  * Displays buttons to filter the feed: Following, Trending, Near.
  */
-const FeedFilters = () => {
+const FeedFilters = ({ onFilterChange }: FeedFiltersProps) => {
   // Tracks the currently active filter
   const [active, setActive] = useState("following");
 
@@ -19,6 +23,12 @@ const FeedFilters = () => {
       ? "bg-[#7C6AA6] text-white shadow-sm"
       : "bg-gray-200 text-gray-700 hover:bg-gray-300";
 
+  // Handles filter selection and triggers the callback
+  const handleClick = (type: string) => {
+    setActive(type);
+    onFilterChange?.(type);
+  };
+
   return (
     <div className="w-full flex justify-center mt-4 lg:justify-start">
       {/* Buttons container */}
@@ -30,7 +40,7 @@ const FeedFilters = () => {
       >
         {/* Following button */}
         <button
-          onClick={() => setActive("following")}
+          onClick={() => handleClick("following")}
           className={`${baseButton} ${getButtonClass("following")}`}
         >
           Following
@@ -38,7 +48,7 @@ const FeedFilters = () => {
 
         {/* Trending button */}
         <button
-          onClick={() => setActive("trending")}
+          onClick={() => handleClick("trending")}
           className={`${baseButton} ${getButtonClass("trending")}`}
         >
           <TrendingUp size={18} />
@@ -47,7 +57,7 @@ const FeedFilters = () => {
 
         {/* Near button */}
         <button
-          onClick={() => setActive("near")}
+          onClick={() => handleClick("near")}
           className={`${baseButton} ${getButtonClass("near")}`}
         >
           <MapPin size={18} />

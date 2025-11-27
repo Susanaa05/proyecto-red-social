@@ -11,16 +11,26 @@ function Home() {
   const location = useLocation();
   const selectedPlace = location.state?.selectedPlace || null;
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
+  const [filter, setFilter] = useState("following"); // New state for active filter
+
   // Get posts from Redux store
   const posts = useAppSelector((state) => state.posts.posts);
 
-  const filteredPosts = selectedPlace
+  // Base filtering by selected place
+  let filteredPosts = selectedPlace
     ? posts.filter((post) =>
       post.title.toLowerCase().includes(selectedPlace.toLowerCase()) ||
       post.description.toLowerCase().includes(selectedPlace.toLowerCase())
     )
     : posts;
+
+  // Apply additional filtering based on selected filter
+  filteredPosts = filteredPosts.filter((post) => {
+    if (filter === "following") return post.category === "following";
+    if (filter === "trending") return post.category === "trending";
+    if (filter === "near") return post.category === "near";
+    return true;
+  });
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -45,7 +55,8 @@ function Home() {
               <Stories />
             </div>
 
-            <FeedFilters />
+            {/* FeedFilters now passes setFilter as a prop */}
+            <FeedFilters onFilterChange={setFilter} />
 
             {/* ===== POSTS MOBILE - Responsive ===== */}
             <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
@@ -75,11 +86,12 @@ function Home() {
             {/* ===== DESKTOP ===== */}
             <div className="flex flex-col gap-4">
               <FeedHeader />
-              <FeedFilters />
+              {/* FeedFilters now passes setFilter as a prop */}
+              <FeedFilters onFilterChange={setFilter} />
             </div>
 
             <div className="flex flex-col-reverse lg:flex-row justify-between gap-6">
-              {/* COLUMNA IZQUIERDA - POSTS */}
+              {/* LEFT COLUMN - POSTS */}
               <div className="w-full lg:w-2/3 flex flex-col gap-6">
                 {filteredPosts.map((post) => (
                   <Post
@@ -93,14 +105,14 @@ function Home() {
                 ))}
               </div>
 
-              {/* COLUMNA DERECHA - STORIES + SUGGESTED */}
+              {/* RIGHT COLUMN - STORIES + SUGGESTED */}
               <div className="w-full lg:w-[310px]">
                 <h2 className="text-base font-semibold text-gray-800 mb-2">
                   Stories
                 </h2>
                 <Stories />
 
-                {/* SUGERIDOS SOLO EN DESKTOP */}
+                {/* SUGGESTED USERS ONLY ON DESKTOP */}
                 <div className="mt-6 hidden md:block">
                   <SuggestedUsers />
                 </div>
