@@ -12,11 +12,12 @@ import { useAppSelector, useAppDispatch } from "./store/hooks";
 import { openCreatePostModal, closeCreatePostModal } from "./store/uiSlice";
 import { setPosts } from "./store/postsSlice";
 import postsData from "./data/posts.json";
+import { SessionChecker } from "./components/SessionChecker";
 import './App.css';
 
 function App() {
   const dispatch = useAppDispatch();
-  
+
   // Get state from Redux
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const isCreatePostOpen = useAppSelector((state) => state.ui.isCreatePostModalOpen);
@@ -29,54 +30,57 @@ function App() {
   }, [dispatch]);
 
   return (
-    <Routes>
-      {/* ===== RUTA DE LOGIN (SIN NAVBAR) ===== */}
-      <Route 
-        path="/login" 
-        element={
-          isAuthenticated ? (
-            <Navigate to="/home" replace />
-          ) : (
-            <Login />
-          )
-        } 
-      />
+    <>
+      <SessionChecker />
+      <Routes>
+        {/* ===== RUTA DE LOGIN (SIN NAVBAR) ===== */}
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/home" replace />
+            ) : (
+              <Login />
+            )
+          }
+        />
 
-      {/* ===== RUTAS CON NAVBAR ===== */}
-      <Route
-        path="/*"
-        element={
-          isAuthenticated ? (
-            <div className="flex min-h-screen bg-gray-100">
-              <Navbar onCreateClick={() => dispatch(openCreatePostModal())} />
-              <main
-                className="
+        {/* ===== RUTAS CON NAVBAR ===== */}
+        <Route
+          path="/*"
+          element={
+            isAuthenticated ? (
+              <div className="flex min-h-screen bg-gray-100">
+                <Navbar onCreateClick={() => dispatch(openCreatePostModal())} />
+                <main
+                  className="
                   flex-1 p-4 sm:p-6
                   lg:ml-64
                   ml-16
                   transition-all duration-300
                 "
-              >
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/searchFunction" element={<SearchFunction />} />
-                  <Route path="/searchPage" element={<SearchPage />} />
-                </Routes>
-              </main>
-              <CreatePost 
-                isOpen={isCreatePostOpen} 
-                onClose={() => dispatch(closeCreatePostModal())} 
-              />
-            </div>
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
-    </Routes>
+                >
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/searchFunction" element={<SearchFunction />} />
+                    <Route path="/searchPage" element={<SearchPage />} />
+                  </Routes>
+                </main>
+                <CreatePost
+                  isOpen={isCreatePostOpen}
+                  onClose={() => dispatch(closeCreatePostModal())}
+                />
+              </div>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+      </Routes>
+    </>
   );
 }
 

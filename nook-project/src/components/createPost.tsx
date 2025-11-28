@@ -2,6 +2,8 @@ import { useState, useRef } from "react";
 import { ArrowLeft, MapPin, Hash, Music, Sliders, Type, Upload, X } from "lucide-react";
 import { useAppDispatch } from "../store/hooks";
 import { addPost } from "../store/postsSlice";
+import { supabase } from '../lib/supabase';
+import { uploadImage } from '../lib/supabase';
 
 /**
  * CreatePost Component
@@ -16,7 +18,7 @@ interface CreatePostProps {
 function CreatePost({ isOpen, onClose }: CreatePostProps) {
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Current step: 'upload' or 'details'
   const [step, setStep] = useState<'upload' | 'details'>('upload');
 
@@ -30,35 +32,35 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
     location: "",
   });
 
-  // Estado para el drag & drop
+  // Drag & drop state
   const [isDragging, setIsDragging] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
+
+  // Uploading state
+  const [uploading, setUploading] = useState(false);
 
   /**
    * Handles file selection
    */
-  const handleFileSelect = (file: File) => {
-    // Validar que sea una imagen
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (JPEG, PNG, etc.)');
-      return;
-    }
+  const handleFileSelect = async (file: File) => {
+    try {
+      setUploading(true);
+      console.log('📤 Iniciando subida de imagen...');
 
-    // Validar tamaño (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Image size should be less than 10MB');
-      return;
-    }
+      const imageUrl = await uploadImage(file);
 
-    // Crear preview y avanzar al siguiente paso
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageUrl = e.target?.result as string;
+      console.log('✅ Imagen subida:', imageUrl);
+      setFormData(prev => ({ ...prev, image: imageUrl }));
       setImagePreview(imageUrl);
-      setFormData((prev) => ({ ...prev, image: imageUrl }));
       setStep('details');
-    };
-    reader.readAsDataURL(file);
+
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert(String(error));
+      }
+    }
   };
 
   /**
@@ -93,7 +95,7 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       handleFileSelect(files[0]);
@@ -112,46 +114,87 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
   /**
    * Handles form submission - Creates new post in Redux store
    */
-  const handleShare = () => {
-    // Validar que haya una imagen
+
+  const handleShare = async () => {
     if (!formData.image) {
-      alert('Please select an image first');
+      alert('Por favor selecciona una imagen primero');
       return;
     }
 
-    // Create new post object
-    const newPost = {
-      id: Date.now(), // Simple ID generation (use UUID in production)
-      image: formData.image,
-      title: formData.title || "Untitled",
-      category: formData.category || "General",
-      description: formData.description,
-      visitors: [], // Empty visitors array for new posts
-      tags: formData.tags,
-      location: formData.location,
-    };
+    try {
+      console.log(' Guardando post en la base de datos...');
 
-    // Dispatch action to add post to Redux store
-    dispatch(addPost(newPost));
+      // gets authenticated user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    // Reset form and close modal
-    setStep('upload');
-    setImagePreview("");
-    setFormData({ 
-      image: "", 
-      title: "", 
-      category: "", 
-      description: "", 
-      tags: "", 
-      location: "" 
-    });
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      if (userError || !user) {
+        alert('Por favor inicia sesión para crear un post');
+        return;
+      }
+
+      // Create new post
+      const newPost = {
+        user_id: user.id,
+        image_url: formData.image,
+        title: formData.title || "Sin título",
+        category: formData.category || "General",
+        description: formData.description || "",
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+        location: formData.location || "",
+        created_at: new Date().toISOString(),
+      };
+
+      console.log('📝 Insertando post:', newPost);
+
+      // Insert on the data base
+      const { data: postData, error: insertError } = await supabase
+        .from('posts')
+        .insert(newPost)
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error(' Error insertando post:', insertError);
+        throw new Error(`Error al guardar el post: ${insertError.message}`);
+      }
+
+      console.log('Post guardado exitosamente:', postData);
+
+      // makes sure uploading is reset as false
+      setUploading(false);
+
+      // Reset form
+      setStep('upload');
+      setImagePreview("");
+      setFormData({
+        image: "",
+        title: "",
+        category: "",
+        description: "",
+        tags: "",
+        location: ""
+      });
+
+      // Close modal
+      if (onClose) onClose();
+
+      // Success message
+      alert('¡Post creado exitosamente!');
+
+      // Reload to see the new post
+      window.location.reload();
+
+    } catch (error) {
+      // reset in case of an error
+      setUploading(false);
+
+      console.error('Error creando post:', error);
+      if (error instanceof Error) {
+        alert('Error al crear el post: ' + error.message);
+      } else {
+        alert('Error al crear el post: ' + String(error));
+      }
     }
-    
-    onClose();
   };
 
   /**
@@ -201,19 +244,23 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
             <div className="flex flex-col items-center mb-8">
               {/* Drag & Drop Zone */}
               <div
-                className={`
-                  w-28 h-28 border-4 border-dashed rounded-2xl flex flex-col items-center justify-center mb-6 cursor-pointer transition-all duration-200
-                  ${isDragging 
-                    ? 'border-[#7C6AA6] bg-[#7C6AA6]/10' 
+                className={`w-28 h-28 border-4 border-dashed rounded-2xl flex flex-col items-center justify-center mb-6 cursor-pointer transition-all duration-200${uploading
+                  ? 'border-[#7C6AA6] bg-[#7C6AA6]/10 cursor-not-allowed'
+                  : isDragging
+                    ? 'border-[#7C6AA6] bg-[#7C6AA6]/10'
                     : 'border-gray-400 hover:border-[#7C6AA6] hover:bg-gray-50'
-                  }
-                `}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={handleSelectFile}
+                  }`}
+                onDragOver={uploading ? undefined : handleDragOver}
+                onDragLeave={uploading ? undefined : handleDragLeave}
+                onDrop={uploading ? undefined : handleDrop}
+                onClick={uploading ? undefined : handleSelectFile}
               >
-                {isDragging ? (
+                {uploading ? (
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#7C6AA6] mx-auto mb-2"></div>
+                    <span className="text-[#7C6AA6] text-xs font-medium">Uploading...</span>
+                  </div>
+                ) : isDragging ? (
                   <div className="text-center">
                     <Upload size={24} className="text-[#7C6AA6] mx-auto mb-2" />
                     <span className="text-[#7C6AA6] text-xs font-medium">Drop here</span>
@@ -253,10 +300,14 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
 
               {/* Upload Button */}
               <button
-                onClick={handleSelectFile}
-                className="w-full bg-[#7C6AA6] text-white py-3 rounded-xl font-medium hover:bg-[#6a5478] transition-colors"
+                onClick={uploading ? undefined : handleSelectFile}
+                disabled={uploading}
+                className={`w-full bg-[#7C6AA6] text-white py-3 rounded-xl font-medium transition-colors${uploading
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-[#6a5478]'
+                  }`}
               >
-                Select from computer
+                {uploading ? 'Uploading...' : 'Select from computer'}
               </button>
 
               {/* Format Info */}
@@ -306,7 +357,7 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
                     <Upload size={16} />
                   </button>
                 </div>
-                
+
                 {/* Hidden File Input (para cambiar imagen) */}
                 <input
                   type="file"

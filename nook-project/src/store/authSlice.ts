@@ -8,7 +8,7 @@ interface AuthState {
   user: {
     id: string;
     firstName: string;
-    userName: string;  // ← ESTE es el campo importante
+    userName: string;
     location: string;
     avatar: string;
   } | null;
@@ -63,8 +63,44 @@ const authSlice = createSlice({
         state.user.userName = action.payload;
       }
     },
+
+    /**
+     * 🔥 NUEVO: Set user from Supabase session
+     * Para cuando el SessionChecker detecta una sesión activa
+     */
+    setUserFromSession: (state, action: PayloadAction<{
+      id: string;
+      email: string;
+      // Puedes agregar más campos si Supabase los provee
+    }>) => {
+      state.isAuthenticated = true;
+      state.user = {
+        id: action.payload.id,
+        firstName: action.payload.email?.split('@')[0] || 'User',
+        userName: action.payload.email?.split('@')[0] || 'user',
+        location: 'Unknown',
+        avatar: 'https://i.pravatar.cc/150'
+      };
+    },
+
+    /**
+     * 🔥 NUEVO: Clear session - Para cuando Supabase no tiene sesión
+     */
+    clearSession: (state) => {
+      state.isAuthenticated = false;
+      state.user = null;
+    },
   },
 });
 
-export const { login, logout, updateProfile, updateUsername } = authSlice.actions;
+// Exporta las nuevas acciones también
+export const { 
+  login, 
+  logout, 
+  updateProfile, 
+  updateUsername,
+  setUserFromSession,  // ← NUEVO
+  clearSession         // ← NUEVO
+} = authSlice.actions;
+
 export default authSlice.reducer;
