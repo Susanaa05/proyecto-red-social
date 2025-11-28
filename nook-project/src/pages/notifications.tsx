@@ -1,5 +1,5 @@
 import React from 'react';
-import { notificationsData } from '../Data/notificationsData';
+import { notificationsData } from '../data/notificationsData';
 import { X } from 'lucide-react';
 
 const Notifications: React.FC = () => {

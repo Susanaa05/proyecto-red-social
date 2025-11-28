@@ -4,86 +4,117 @@ import LoginMapSection from '../components/LoginMapSection';
 import RegisterForm from '../components/registerForm';
 import { useAppDispatch } from '../store/hooks';
 import { login } from '../store/authSlice';
-
-const INITIAL_USERS = [
-  {
-    id: 'user1',
-    userName: 'Alex_S',
-    password: 'password123',
-    firstName: 'Alex',
-    location: 'Cali, Colombia',
-    avatar: 'https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg'
-  },
-];
+import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [isLoginView, setIsLoginView] = useState(true);
-  const [users, setUsers] = useState(INITIAL_USERS);
   const [error, setError] = useState<string | null>(null);
 
-  // --- LÓGICA DE LOGIN ---
-  const handleLogin = (username: string, password: string) => {
+  // --- LÓGICA DE LOGIN CON SUPABASE ---
+  const handleLogin = async (email: string, password: string) => {
     setError(null);
-    console.log('Login attempt:', { username, password });
+    console.log('Login attempt:', { email });
     
-    // 1. Verificar credenciales en la DB
-    const user = users.find(u => 
-      (u.userName === username || u.firstName === username) && u.password === password
-    );
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
 
-    if (user) {
-      console.log('Login successful for:', user.userName);
-      // 2. Despachar acción de login con datos del usuario ENCONTRADO
-      dispatch(login({
-        id: user.id,
-        firstName: user.firstName,
-        userName: user.userName,
-        location: user.location,
-        avatar: user.avatar
-      }));
-    } else {
-      // 3. Mostrar error de credenciales
-      setError('Invalid username or password.');
-      console.log('Login failed: Invalid credentials.');
-    }
-  };
-
-  // --- LÓGICA DE REGISTRO ---
-  const handleRegister = (data: { email: string, password: string, fullName: string, username: string }) => {
-    setError(null);
-    
-    // 1. Verificar si el usuario ya existe
-    const exists = users.some(u => u.userName === data.username || u.firstName === data.fullName);
-    
-    if (exists) {
-        setError('Username already taken.');
+      if (error) {
+        setError('Invalid email or password');
+        console.log('Login failed:', error.message);
         return;
+      }
+
+      if (data.user) {
+        console.log('Login successful for:', data.user.email);
+        
+        // Obtener el perfil del usuario desde la tabla profiles
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('username, full_name, avatar_url')  // ← AGREGAMOS full_name
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) {
+          console.log('Error fetching profile:', profileError);
+        }
+
+        // ✅ CORREGIDO: Usar full_name para firstName y username para userName
+        dispatch(login({
+          id: data.user.id,
+          firstName: profile?.full_name || profile?.username || data.user.email?.split('@')[0] || 'User',  // ← NOMBRE COMPLETO
+          userName: profile?.username || 'user',  // ← USERNAME
+          location: 'Unknown',
+          avatar: profile?.avatar_url || 'https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg'
+        }));
+
+        // Redirigir al home después del login exitoso
+        navigate('/');
+      }
+      
+    } catch (err) {
+      setError('Login failed. Please try again.');
+      console.log('Login error:', err);
     }
-    
-    // 2. Crear nuevo usuario
-    const newUser = {
-        id: `user${users.length + 1}`,
-        userName: data.username,
-        password: data.password,
-        firstName: data.fullName.split(' ')[0] || data.username,
-        location: 'Unknown',
-        avatar: 'https://i.pinimg.com/736x/d8/f8/b4/d8f8b4f591c29fb209c4a7dc33160dd5.jpg', // Avatar por defecto
-    };
-
-    // 3. Añadir a la lista de usuarios
-    setUsers([...users, newUser]);
-    console.log('User registered and logged in:', newUser.userName);
-
-    dispatch(login({
-        id: newUser.id,
-        firstName: newUser.firstName,
-        userName: newUser.userName,
-        location: newUser.location,
-        avatar: newUser.avatar
-    }));
   };
 
+  // --- LÓGICA DE REGISTRO CON SUPABASE ---
+  const handleRegister = async (formData: { email: string, password: string, fullName: string, username: string }) => {
+    setError(null);
+    
+    try {
+      // 1. PRIMERO crear el usuario con signUp
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+
+      if (!authData.user) {
+        setError('Registration failed. No user created.');
+        return;
+      }
+
+      // 2. Crear perfil en la tabla profiles CON full_name Y username
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          username: formData.username,
+          full_name: formData.fullName,  // ← GUARDAMOS EL NOMBRE COMPLETO
+          avatar_url: 'https://i.pinimg.com/736x/d8/f8/b4/d8f8b4f591c29fb209c4a7dc33160dd5.jpg',
+          created_at: new Date().toISOString()
+        });
+
+      if (profileError) {
+        if (profileError.code === '23505') {
+          setError('Username already taken. Please choose a different one.');
+        } else {
+          setError('Error creating profile: ' + profileError.message);
+        }
+        return;
+      }
+
+      console.log('Profile created with fullName:', formData.fullName, 'and username:', formData.username);
+
+      // 3. MOSTRAR MENSAJE DE CONFIRMACIÓN
+      setError('Registration successful! Please check your email to confirm your account.');
+      setIsLoginView(true); // Volver al login
+
+    } catch (err) {
+      setError('Registration failed. Please try again.');
+      console.log('Registration error:', err);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-[#7B6EAE] via-[#9B7FBD] to-[#AF91C6]">
@@ -106,14 +137,12 @@ function Login() {
           )}
 
           {isLoginView ? (
-            // Muestra el formulario de Login
             <LoginForm 
               onLogin={handleLogin} 
               onGoToSignup={() => { setIsLoginView(false); setError(null); }}
               onForgotPassword={() => console.log('Forgot password action')}
             />
           ) : (
-            // Muestra el formulario de Registro
             <RegisterForm
               onRegister={handleRegister}
               onGoToLogin={() => { setIsLoginView(true); setError(null); }}

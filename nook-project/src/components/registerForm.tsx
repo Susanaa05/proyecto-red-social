@@ -14,6 +14,8 @@ function RegisterForm({ onRegister, onGoToLogin }: RegisterFormProps) {
     username: ''
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -21,16 +23,41 @@ function RegisterForm({ onRegister, onGoToLogin }: RegisterFormProps) {
     }));
   };
 
-  const handleRegister = () => {
-    if (formData.email && formData.password && formData.fullName && formData.username) {
-        onRegister(formData);
-    } else {
-        console.log('Please fill all fields.');
+  const handleRegister = async () => {
+    // Validaciones básicas
+    if (!formData.email || !formData.password || !formData.fullName || !formData.username) {
+      alert('Please fill all fields.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      alert('Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (!formData.email.includes('@')) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await onRegister(formData);
+    } catch (error) {
+      console.log('Registration error:', error);
+      alert('Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleRegister();
     }
   };
 
   return (
-    // Contenedor del formulario de registro
     <div className="p-10 rounded-3xl bg-white/70 backdrop-blur-md shadow-2xl max-w-sm w-full"> 
       <div className="text-center mb-8">
         <img
@@ -41,21 +68,23 @@ function RegisterForm({ onRegister, onGoToLogin }: RegisterFormProps) {
       </div>
 
       <div className="space-y-4">
-        {/* Email/Mobile Input */}
+        {/* Email Input */}
         <input
-          type="text"
-          placeholder="Mobile number or email address"
+          type="email"
+          placeholder="Email address"
           value={formData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
+          onKeyPress={handleKeyPress}
           className="w-full px-4 py-3 rounded-xl bg-white text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all border border-gray-200"
         />
 
         {/* Password Input */}
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Password (min. 6 characters)"
           value={formData.password}
           onChange={(e) => handleInputChange('password', e.target.value)}
+          onKeyPress={handleKeyPress}
           className="w-full px-4 py-3 rounded-xl bg-white text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all border border-gray-200"
         />
 
@@ -65,15 +94,17 @@ function RegisterForm({ onRegister, onGoToLogin }: RegisterFormProps) {
           placeholder="Full Name"
           value={formData.fullName}
           onChange={(e) => handleInputChange('fullName', e.target.value)}
+          onKeyPress={handleKeyPress}
           className="w-full px-4 py-3 rounded-xl bg-white text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all border border-gray-200"
         />
 
-        {/* User Input */}
+        {/* Username Input */}
         <input
           type="text"
-          placeholder="User"
+          placeholder="Username"
           value={formData.username}
           onChange={(e) => handleInputChange('username', e.target.value)}
+          onKeyPress={handleKeyPress}
           className="w-full px-4 py-3 rounded-xl bg-white text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all border border-gray-200"
         />
 
@@ -85,9 +116,12 @@ function RegisterForm({ onRegister, onGoToLogin }: RegisterFormProps) {
         {/* Register Button */}
         <button
           onClick={handleRegister}
-          className="w-full py-3 bg-black text-white rounded-xl font-semibold text-base hover:bg-gray-800 transition-colors shadow-lg mt-4"
+          disabled={loading}
+          className={`w-full py-3 bg-black text-white rounded-xl font-semibold text-base hover:bg-gray-800 transition-colors shadow-lg mt-4 ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          Register
+          {loading ? 'Creating Account...' : 'Register'}
         </button>
       </div>
 
@@ -98,6 +132,7 @@ function RegisterForm({ onRegister, onGoToLogin }: RegisterFormProps) {
           <button
             onClick={onGoToLogin}
             className="underline font-semibold text-purple-700 hover:text-purple-500 transition-colors"
+            disabled={loading}
           >
             Log in
           </button>
