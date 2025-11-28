@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import FeedHeader from "../components/feedheader";
-import Post from "../components/Post";
+import Post from "../components/postComponent";
 import postsData from "../data/posts.json";
 
 function SearchPage() {

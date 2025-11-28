@@ -5,7 +5,7 @@ import FeedHeader from "../components/feedheader";
 import Stories from "../components/stories";
 import FeedFilters from "../components/feedFilters";
 import SuggestedUsers from "../components/SuggestedUsers";
-import Post from "../components/post";
+import Post from "../components/postComponent";
 import StoryModal from "../components/StoryModal";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { supabase } from "../lib/supabase";
