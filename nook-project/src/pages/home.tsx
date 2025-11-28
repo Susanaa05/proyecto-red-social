@@ -5,9 +5,11 @@ import FeedHeader from "../components/feedheader";
 import Stories from "../components/stories";
 import FeedFilters from "../components/feedFilters";
 import SuggestedUsers from "../components/SuggestedUsers";
-import Post from "../components/Post";
+import Post from "../components/post";
 import StoryModal from "../components/StoryModal";
-import { useAppSelector } from "../store/hooks";
+import { useAppSelector, useAppDispatch } from "../store/hooks";
+import { supabase } from "../lib/supabase";
+import { setPosts } from "../store/postsSlice";
 
 function Home() {
   const location = useLocation();
@@ -16,9 +18,11 @@ function Home() {
   const [activeFilter, setActiveFilter] = useState("following");
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   
   // Get posts from Redux store
   const posts = useAppSelector((state) => state.posts.posts);
+  const dispatch = useAppDispatch();
 
   // Datos de las stories (los mismos que en Stories.tsx)
   const stories = [
@@ -47,6 +51,48 @@ function Home() {
       profileImg: "https://i.pinimg.com/736x/3c/2b/ad/3c2badd0b9688bcb810ef699afc3f7c1.jpg",
     },
   ];
+
+  // ✅ Cargar posts desde Supabase
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('posts')
+          .select(`
+            *,
+            profiles:user_id(username, avatar_url)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching posts:', error);
+          return;
+        }
+
+        if (data) {
+          // Transformar datos de Supabase al formato que espera tu componente
+          const transformedPosts = data.map(post => ({
+            id: post.id,
+            image: post.image_url,
+            title: post.title,
+            category: post.category,
+            description: post.description,
+            visitors: post.visitors || [], // Mantener compatibilidad
+            user: post.profiles // Nueva data del usuario
+          }));
+          
+          dispatch(setPosts(transformedPosts));
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [dispatch]);
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
@@ -93,6 +139,14 @@ function Home() {
   return (
     <div className="flex justify-center min-h-screen px-4 overflow-x-hidden bg-gray-50">
       <div className="w-full max-w-6xl flex flex-col gap-6 mt-6">
+        
+        {/* ✅ LOADING STATE */}
+        {loading && (
+          <div className="flex justify-center py-8">
+            <p className="text-gray-500">Cargando publicaciones...</p>
+          </div>
+        )}
+
         {isMobile ? (
           <>
             {/* ===== MOBILE ===== */}
@@ -113,30 +167,32 @@ function Home() {
             />
 
             {/* ===== POSTS MOBILE ===== */}
-            <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
-              {filteredPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="w-full rounded-2xl overflow-hidden shadow-md bg-white"
-                >
-                  <Post
-                    image={post.image}
-                    title={post.title}
-                    category={post.category}
-                    description={post.description}
-                    visitors={post.visitors}
-                  />
-                </div>
-              ))}
-              {filteredPosts.length === 0 && (
-                <p className="text-gray-500 text-center mt-10">
-                  {selectedPlace 
-                    ? `No results found for "${selectedPlace}" in ${activeFilter}`
-                    : `No posts found in ${activeFilter}`
-                  }
-                </p>
-              )}
-            </div>
+            {!loading && (
+              <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
+                {filteredPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="w-full rounded-2xl overflow-hidden shadow-md bg-white"
+                  >
+                    <Post
+                      image={post.image}
+                      title={post.title}
+                      category={post.category}
+                      description={post.description}
+                      visitors={post.visitors}
+                    />
+                  </div>
+                ))}
+                {filteredPosts.length === 0 && (
+                  <p className="text-gray-500 text-center mt-10">
+                    {selectedPlace 
+                      ? `No results found for "${selectedPlace}" in ${activeFilter}`
+                      : `No posts found in ${activeFilter}`
+                    }
+                  </p>
+                )}
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -151,26 +207,28 @@ function Home() {
 
             <div className="flex flex-col-reverse lg:flex-row justify-between gap-6">
               {/* COLUMNA IZQUIERDA - POSTS */}
-              <div className="w-full lg:w-2/3 flex flex-col gap-6">
-                {filteredPosts.map((post) => (
-                  <Post
-                    key={post.id}
-                    image={post.image}
-                    title={post.title}
-                    category={post.category}
-                    description={post.description}
-                    visitors={post.visitors}
-                  />
-                ))}
-                {filteredPosts.length === 0 && (
-                  <p className="text-gray-500 text-center mt-10">
-                    {selectedPlace 
-                      ? `No results found for "${selectedPlace}" in ${activeFilter}`
-                      : `No posts found in ${activeFilter}`
-                    }
-                  </p>
-                )}
-              </div>
+              {!loading && (
+                <div className="w-full lg:w-2/3 flex flex-col gap-6">
+                  {filteredPosts.map((post) => (
+                    <Post
+                      key={post.id}
+                      image={post.image}
+                      title={post.title}
+                      category={post.category}
+                      description={post.description}
+                      visitors={post.visitors}
+                    />
+                  ))}
+                  {filteredPosts.length === 0 && (
+                    <p className="text-gray-500 text-center mt-10">
+                      {selectedPlace 
+                        ? `No results found for "${selectedPlace}" in ${activeFilter}`
+                        : `No posts found in ${activeFilter}`
+                      }
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* COLUMNA DERECHA - STORIES + SUGGESTED */}
               <div className="w-full lg:w-[310px]">
