@@ -8,7 +8,7 @@ interface AuthState {
   user: {
     id: string;
     firstName: string;
-    userName: string;
+    userName: string;  // ← ESTE es el campo importante
     location: string;
     avatar: string;
   } | null;
@@ -47,15 +47,24 @@ const authSlice = createSlice({
     },
 
     /**
-     * Update user profile
+     * Update user profile - ESPECIALMENTE para username
      */
     updateProfile: (state, action: PayloadAction<Partial<AuthState['user']>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
       }
     },
+
+    /**
+     * Update username específicamente
+     */
+    updateUsername: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.userName = action.payload;
+      }
+    },
   },
 });
 
-export const { login, logout, updateProfile } = authSlice.actions;
+export const { login, logout, updateProfile, updateUsername } = authSlice.actions;
 export default authSlice.reducer;
