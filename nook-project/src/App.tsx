@@ -1,3 +1,4 @@
+// src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import Home from "./pages/home";
@@ -5,6 +6,7 @@ import Notifications from "./pages/notifications";
 import Profile from "./pages/profile";
 import SearchPage from "./pages/searchPage";
 import Login from "./pages/login";
+import { PostDetail } from "./pages/PostDetail";
 import SearchFunction from "./components/searchFunction";
 import Navbar from "./components/sideBar";
 import CreatePost from "./components/createPost";
@@ -64,6 +66,7 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/searchFunction" element={<SearchFunction />} />
                   <Route path="/searchPage" element={<SearchPage />} />
+                  <Route path="/post/:postId" element={<PostDetail />} />
                 </Routes>
               </main>
               <CreatePost 

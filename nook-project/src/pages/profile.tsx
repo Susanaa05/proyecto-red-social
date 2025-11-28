@@ -28,6 +28,11 @@ function ProfilePage() {
   // Estado para la preview de la nueva imagen
   const [avatarPreview, setAvatarPreview] = useState<string>(editForm.avatar);
 
+  // 👇 FUNCIÓN CLAVE PARA NAVEGAR A DETALLES DEL POST
+  const handlePostClick = (postId: number) => {
+    navigate(`/post/${postId}`);
+  };
+
   const menuItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/maps', icon: Map, label: 'Maps' },
@@ -359,7 +364,15 @@ function ProfilePage() {
         {/* Posts Grid - Instagram Style 4 Columns */}
         <div className="grid grid-cols-4 gap-1">
           {filteredPosts.map((post) => (
-            <div key={post.id} className="aspect-[3/4] overflow-hidden relative group">
+            <div 
+              key={post.id} 
+              className="aspect-[3/4] overflow-hidden relative group cursor-pointer"
+              onClick={() => handlePostClick(post.id)}
+              role="button"
+              tabIndex={0}
+              onKeyPress={(e) => e.key === 'Enter' && handlePostClick(post.id)}
+              aria-label={`View post from ${post.location}`}
+            >
               <img 
                 src={post.image} 
                 alt={`Post from ${post.location}`} 
