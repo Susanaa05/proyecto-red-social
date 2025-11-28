@@ -4,21 +4,26 @@ import { Bookmark, MapPin, BookmarkCheck } from 'lucide-react';
 
 // Interface defining the expected props for the Post component
 interface PostProps {
+  id: number; // ← FALTABA ESTE
   image: string;
   title: string;
   category: string;
   description: string;
   visitors: string[];
+  initialLikes?: number; // ← NUEVO
+  initialIsLiked?: boolean; // ← NUEVO
 }
 
 const Post: React.FC<PostProps> = ({
+  id, // ← AGREGAR
   image,
   title,
   category,
   description,
   visitors,
+  initialLikes = 0, // ← AGREGAR
+  initialIsLiked = false // ← AGREGAR
 }) => {
-
   /** 
    * State that tracks whether the post has been added to the user's list.
    * Defaults to 'false'.
