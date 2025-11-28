@@ -1,10 +1,9 @@
 import React from "react";
 import { useState } from "react";
-import { Bookmark, MapPin, BookmarkCheck, MessageCircle, Share, Send, Trash2 } from 'lucide-react';
+import { Bookmark, MapPin, BookmarkCheck, MessageCircle, Share } from 'lucide-react';
 import { LikeButton } from './LikeButton';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { addComment, deleteComment } from '../store/postsSlice';
-import type { Comment } from '../store/postsSlice';
+import { useAppSelector } from '../store/hooks';
+import { CommentsSection } from './CommentsSection';
 
 // Interface defining the expected props for the Post component
 interface PostProps {
@@ -14,7 +13,6 @@ interface PostProps {
   category: string;
   description: string;
   visitors: string[];
-  comments?: Comment[];
   initialLikes?: number;
   initialIsLiked?: boolean;
 }
@@ -26,15 +24,12 @@ const Post: React.FC<PostProps> = ({
   category,
   description,
   visitors,
-  comments = [],
   initialLikes = 0,
   initialIsLiked = false
 }) => {
   const [added, setAdded] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [newComment, setNewComment] = useState('');
 
-  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
 
   /**
@@ -42,41 +37,6 @@ const Post: React.FC<PostProps> = ({
    */
   const handleAddClick = () => {
     setAdded(!added);
-  };
-
-  const handleCommentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim() || !user) return;
-
-    const comment: Comment = {
-      id: Date.now().toString(),
-      userId: user.id || '1',
-      userAvatar: user.avatar || 'https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg',
-      username: user.userName || 'Alex_S',
-      text: newComment,
-      timestamp: Date.now(),
-    };
-
-    dispatch(addComment({ postId: id, comment }));
-    setNewComment('');
-  };
-
-  const handleDeleteComment = (commentId: string) => {
-    dispatch(deleteComment({ postId: id, commentId }));
-  };
-
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const isCommentAuthor = (comment: Comment) => {
-    return comment.userId === (user?.id || '1');
   };
 
   return (
@@ -175,11 +135,6 @@ const Post: React.FC<PostProps> = ({
             <span className="font-medium">
               {showComments ? 'Hide' : 'Comment'}
             </span>
-            {comments.length > 0 && (
-              <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm">
-                {comments.length}
-              </span>
-            )}
           </button>
 
           {/* Share Button */}
@@ -191,71 +146,10 @@ const Post: React.FC<PostProps> = ({
       </div>
 
       {/* === COMMENTS SECTION === */}
-      {showComments && (
-        <div className="p-4">
-          {/* Add Comment Form */}
-          <form onSubmit={handleCommentSubmit} className="flex gap-3 mb-4">
-            <img 
-              src={user?.avatar || 'https://i.pinimg.com/736x/42/66/fd/4266fde4546eb6262abce6b8802d4cd3.jpg'} 
-              alt="Your avatar" 
-              className="w-10 h-10 rounded-full flex-shrink-0"
-            />
-            <div className="flex-1 flex gap-2">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Write a comment..."
-                className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <button 
-                type="submit"
-                disabled={!newComment.trim()}
-                className="bg-purple-500 text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-600 transition-colors"
-              >
-                <Send size={18} />
-              </button>
-            </div>
-          </form>
-
-          {/* Comments List */}
-          <div className="space-y-4 max-h-80 overflow-y-auto">
-            {comments.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>
-            ) : (
-              comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3 group">
-                  <img 
-                    src={comment.userAvatar} 
-                    alt={comment.username} 
-                    className="w-8 h-8 rounded-full flex-shrink-0"
-                  />
-                  <div className="flex-1">
-                    <div className="bg-gray-50 rounded-2xl p-3 relative group">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-gray-900">{comment.username}</span>
-                        <span className="text-gray-500 text-sm">{formatTime(comment.timestamp)}</span>
-                      </div>
-                      <p className="text-gray-700">{comment.text}</p>
-                      
-                      {/* Delete Button - Solo para el autor, aparece en hover */}
-                      {isCommentAuthor(comment) && (
-                        <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                          title="Delete comment"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
+      <CommentsSection 
+        postId={id}
+        showComments={showComments}
+      />
     </div>
   );
 };

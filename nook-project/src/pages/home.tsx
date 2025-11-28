@@ -20,11 +20,9 @@ function Home() {
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   
-  // Get posts from Redux store
   const posts = useAppSelector((state) => state.posts.posts);
   const dispatch = useAppDispatch();
 
-  // Datos de las stories (los mismos que en Stories.tsx)
   const stories = [
     {
       id: 1,
@@ -52,48 +50,7 @@ function Home() {
     },
   ];
 
-  // ✅ Cargar posts desde Supabase
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('posts')
-          .select(`
-            *,
-            profiles:user_id(username, avatar_url)
-          `)
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          console.error('Error fetching posts:', error);
-          return;
-        }
-
-        if (data) {
-          // Transformar datos de Supabase al formato que espera tu componente
-          const transformedPosts = data.map(post => ({
-            id: post.id,
-            image: post.image_url,
-            title: post.title,
-            category: post.category,
-            description: post.description,
-            visitors: post.visitors || [], // Mantener compatibilidad
-            user: post.profiles // Nueva data del usuario
-          }));
-          
-          dispatch(setPosts(transformedPosts));
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [dispatch]);
-
+  // 👇 AGREGAR ESTAS FUNCIONES FALTANTES
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
   };
@@ -108,7 +65,7 @@ function Home() {
     setIsStoryModalOpen(false);
   };
 
-  // ... (el resto del código de filtrado permanece igual)
+  // 👇 AGREGAR ESTA LÓGICA DE FILTRADO FALTANTE
   const placeFilteredPosts = selectedPlace
     ? posts.filter((post) =>
         post.title.toLowerCase().includes(selectedPlace.toLowerCase()) ||
@@ -130,17 +87,60 @@ function Home() {
     }
   })();
 
+  // 👇 AGREGAR ESTE EFFECT FALTANTE
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Cargar posts desde Supabase
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('posts')
+          .select(`
+            *,
+            profiles:user_id(username, avatar_url)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching posts:', error);
+          return;
+        }
+
+        if (data) {
+          const transformedPosts = data.map(post => ({
+            id: post.id,
+            image: post.image_url,
+            title: post.title,
+            category: post.category,
+            description: post.description,
+            visitors: post.visitors || [],
+            likes: post.likes || 0,
+            isLiked: post.is_liked || false,
+            user: post.profiles
+          }));
+          
+          dispatch(setPosts(transformedPosts));
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [dispatch]);
+
   return (
     <div className="flex justify-center min-h-screen px-4 overflow-x-hidden bg-gray-50">
       <div className="w-full max-w-6xl flex flex-col gap-6 mt-6">
         
-        {/* ✅ LOADING STATE */}
         {loading && (
           <div className="flex justify-center py-8">
             <p className="text-gray-500">Cargando publicaciones...</p>
@@ -149,15 +149,13 @@ function Home() {
 
         {isMobile ? (
           <>
-            {/* ===== MOBILE ===== */}
+            {/* MOBILE VIEW */}
             <div className="w-full max-w-[480px] mx-auto">
               <FeedHeader />
             </div>
 
             <div className="w-full max-w-[480px] mx-auto flex flex-col gap-3">
-              <h2 className="text-base font-semibold text-gray-800 px-1">
-                Stories
-              </h2>
+              <h2 className="text-base font-semibold text-gray-800 px-1">Stories</h2>
               <Stories onStoryClick={handleStoryClick} />
             </div>
 
@@ -166,20 +164,20 @@ function Home() {
               onFilterChange={handleFilterChange} 
             />
 
-            {/* ===== POSTS MOBILE ===== */}
+            {/* POSTS MOBILE */}
             {!loading && (
               <div className="w-full max-w-[480px] mx-auto flex flex-col gap-6 px-1 sm:px-0">
                 {filteredPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="w-full rounded-2xl overflow-hidden shadow-md bg-white"
-                  >
+                  <div key={post.id} className="w-full rounded-2xl overflow-hidden shadow-md bg-white">
                     <Post
+                      id={post.id}
                       image={post.image}
                       title={post.title}
                       category={post.category}
                       description={post.description}
                       visitors={post.visitors}
+                      initialLikes={post.likes || 0}
+                      initialIsLiked={post.isLiked || false}
                     />
                   </div>
                 ))}
@@ -196,7 +194,7 @@ function Home() {
           </>
         ) : (
           <>
-            {/* ===== DESKTOP ===== */}
+            {/* DESKTOP VIEW */}
             <div className="flex flex-col gap-4">
               <FeedHeader />
               <FeedFilters 
@@ -206,17 +204,20 @@ function Home() {
             </div>
 
             <div className="flex flex-col-reverse lg:flex-row justify-between gap-6">
-              {/* COLUMNA IZQUIERDA - POSTS */}
+              {/* POSTS DESKTOP */}
               {!loading && (
                 <div className="w-full lg:w-2/3 flex flex-col gap-6">
                   {filteredPosts.map((post) => (
                     <Post
                       key={post.id}
+                      id={post.id}
                       image={post.image}
                       title={post.title}
                       category={post.category}
                       description={post.description}
                       visitors={post.visitors}
+                      initialLikes={post.likes || 0}
+                      initialIsLiked={post.isLiked || false}
                     />
                   ))}
                   {filteredPosts.length === 0 && (
@@ -230,14 +231,10 @@ function Home() {
                 </div>
               )}
 
-              {/* COLUMNA DERECHA - STORIES + SUGGESTED */}
+              {/* RIGHT COLUMN */}
               <div className="w-full lg:w-[310px]">
-                <h2 className="text-base font-semibold text-gray-800 mb-2">
-                  Stories
-                </h2>
+                <h2 className="text-base font-semibold text-gray-800 mb-2">Stories</h2>
                 <Stories onStoryClick={handleStoryClick} />
-
-                {/* SUGERIDOS SOLO EN DESKTOP */}
                 <div className="mt-6 hidden md:block">
                   <SuggestedUsers />
                 </div>
@@ -246,7 +243,7 @@ function Home() {
           </>
         )}
 
-        {/* MODAL DE STORIES */}
+        {/* STORY MODAL */}
         <StoryModal
           isOpen={isStoryModalOpen}
           onClose={handleCloseStoryModal}
