@@ -1,15 +1,20 @@
-// CREAR: src/components/LikeButton.tsx
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { Heart } from "lucide-react";
 
 interface LikeButtonProps {
   postId: number;
+  initialLikes?: number;      // 👈 AGREGAR ESTA LÍNEA
+  initialIsLiked?: boolean;   // 👈 AGREGAR ESTA LÍNEA
 }
 
-export const LikeButton = ({ postId }: LikeButtonProps) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+export const LikeButton = ({ 
+  postId, 
+  initialLikes = 0,          // 👈 AGREGAR ESTA LÍNEA
+  initialIsLiked = false      // 👈 AGREGAR ESTA LÍNEAn
+}: LikeButtonProps) => {
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [likeCount, setLikeCount] = useState(initialLikes);
   const [loading, setLoading] = useState(false);
 
   // Cargar estado inicial de likes
@@ -23,7 +28,7 @@ export const LikeButton = ({ postId }: LikeButtonProps) => {
           .eq('post_id', postId);
 
         if (!countError) {
-          setLikeCount(count || 0);
+          setLikeCount(count || initialLikes);
         }
 
         // Verificar si usuario actual dio like
@@ -40,11 +45,14 @@ export const LikeButton = ({ postId }: LikeButtonProps) => {
         }
       } catch (error) {
         console.error('Error fetching like status:', error);
+        // Si hay error, usar los valores iniciales
+        setLikeCount(initialLikes);
+        setIsLiked(initialIsLiked);
       }
     };
 
     fetchLikeStatus();
-  }, [postId]);
+  }, [postId, initialLikes, initialIsLiked]);
 
   const handleLike = async () => {
     if (loading) return;

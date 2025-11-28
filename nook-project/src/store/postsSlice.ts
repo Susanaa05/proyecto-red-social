@@ -1,6 +1,18 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 /**
+ * Comment Interface
+ */
+export interface Comment {
+  id: string;
+  userId: string;
+  userAvatar: string;
+  username: string;
+  text: string;
+  timestamp: number;
+}
+
+/**
  * Post Interface
  */
 export interface Post {
@@ -12,6 +24,7 @@ export interface Post {
   visitors: string[];
   tags?: string;
   location?: string;
+  comments?: Comment[]; // 
 }
 
 /**
@@ -74,6 +87,32 @@ const postsSlice = createSlice({
     },
 
     /**
+     * Add a comment to a post
+     */
+    addComment: (state, action: PayloadAction<{ postId: number; comment: Comment }>) => {
+      const { postId, comment } = action.payload;
+      const post = state.posts.find(p => p.id === postId);
+      if (post) {
+        // Inicializar array de comentarios si no existe
+        if (!post.comments) {
+          post.comments = [];
+        }
+        post.comments.push(comment);
+      }
+    },
+
+    /**
+     * Delete a comment from a post
+     */
+    deleteComment: (state, action: PayloadAction<{ postId: number; commentId: string }>) => {
+      const { postId, commentId } = action.payload;
+      const post = state.posts.find(p => p.id === postId);
+      if (post && post.comments) {
+        post.comments = post.comments.filter(comment => comment.id !== commentId);
+      }
+    },
+
+    /**
      * Set loading state
      */
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -95,6 +134,8 @@ export const {
   addPost,
   updatePost,
   deletePost,
+  addComment,    
+  deleteComment, 
   setLoading,
   setError,
 } = postsSlice.actions;
