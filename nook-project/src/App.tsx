@@ -69,6 +69,7 @@ function App() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/searchFunction" element={<SearchFunction />} />
                     <Route path="/searchPage" element={<SearchPage />} />
+                    <Route path="/post/:postId" element={<PostDetail />} />
                   </Routes>
                 </main>
                 <CreatePost

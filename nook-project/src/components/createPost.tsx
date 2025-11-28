@@ -2,8 +2,7 @@ import { useState, useRef } from "react";
 import { ArrowLeft, MapPin, Hash, Music, Sliders, Type, Upload, X } from "lucide-react";
 import { useAppDispatch } from "../store/hooks";
 import { addPost } from "../store/postsSlice";
-import { supabase } from '../lib/supabase';
-import { uploadImage } from '../lib/supabase';
+import { supabase, uploadImage } from '../lib/supabase';
 
 /**
  * CreatePost Component
@@ -55,6 +54,7 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
       setStep('details');
 
     } catch (error) {
+      setUploading(false); // Reset uploading state on error
       if (error instanceof Error) {
         alert(error.message);
       } else {
@@ -112,9 +112,8 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
   };
 
   /**
-   * Handles form submission - Creates new post in Redux store
+   * Handles form submission - Creates new post in Supabase
    */
-
   const handleShare = async () => {
     if (!formData.image) {
       alert('Por favor selecciona una imagen primero');
@@ -160,8 +159,8 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
 
       console.log('Post guardado exitosamente:', postData);
 
-      // makes sure uploading is reset as false
-      setUploading(false);
+      // 👇 NOTIFY THAT A NEW POST WAS CREATED
+      window.dispatchEvent(new CustomEvent('postCreated'));
 
       // Reset form
       setStep('upload');
@@ -180,9 +179,6 @@ function CreatePost({ isOpen, onClose }: CreatePostProps) {
 
       // Success message
       alert('¡Post creado exitosamente!');
-
-      // Reload to see the new post
-      window.location.reload();
 
     } catch (error) {
       // reset in case of an error

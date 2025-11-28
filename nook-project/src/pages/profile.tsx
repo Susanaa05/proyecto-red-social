@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logout, updateProfile } from '../store/authSlice';
 import { openEditProfileModal, closeEditProfileModal } from '../store/uiSlice';
+import { supabase } from '../lib/supabase';
+import type { Post } from '../store/postsSlice';
 
 function ProfilePage() {
   const navigate = useNavigate();
@@ -13,6 +15,10 @@ function ProfilePage() {
   // Get user data and modal state from Redux
   const user = useAppSelector((state) => state.auth.user);
   const isEditModalOpen = useAppSelector((state) => state.ui.isEditProfileModalOpen);
+  
+  // Nuevo estado para los posts del usuario
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
   
   // Nuevo estado para el filtro activo
   const [activeFilter, setActiveFilter] = useState('all');
@@ -28,10 +34,77 @@ function ProfilePage() {
   // Estado para la preview de la nueva imagen
   const [avatarPreview, setAvatarPreview] = useState<string>(editForm.avatar);
 
+  // 👇 FUNCIÓN PARA CARGAR POSTS DEL USUARIO
+  const fetchUserPosts = async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingPosts(true);
+      console.log('📡 Cargando posts del usuario:', user.id);
+      
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('❌ Error cargando posts del usuario:', error);
+        return;
+      }
+      
+      if (data) {
+        console.log('✅ Posts del usuario cargados:', data.length);
+        // Transformar datos de Supabase al formato de la app
+        const transformedPosts: Post[] = data.map(post => ({
+          id: post.id,
+          image: post.image_url,
+          title: post.title,
+          category: post.category,
+          description: post.description,
+          visitors: [],
+          likes: 0,
+          isLiked: false,
+          location: post.location,
+          tags: post.tags
+        }));
+        setUserPosts(transformedPosts);
+      }
+    } catch (error) {
+      console.error('❌ Error:', error);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  // Effect para cargar los posts del usuario
+  useEffect(() => {
+    fetchUserPosts();
+  }, [user]);
+
+  // Effect para escuchar cuando se crean nuevos posts
+  useEffect(() => {
+    const handlePostCreated = () => {
+      console.log('🔄 Post creado, recargando posts...');
+      fetchUserPosts();
+    };
+
+    window.addEventListener('postCreated', handlePostCreated);
+    
+    return () => {
+      window.removeEventListener('postCreated', handlePostCreated);
+    };
+  }, []);
+
   // 👇 FUNCIÓN CLAVE PARA NAVEGAR A DETALLES DEL POST
   const handlePostClick = (postId: number) => {
     navigate(`/post/${postId}`);
   };
+
+  // Filtrar posts del usuario según el filtro activo
+  const filteredUserPosts = activeFilter === 'all' 
+    ? userPosts 
+    : userPosts.filter(post => post.location === activeFilter);
 
   const menuItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -41,60 +114,6 @@ function ProfilePage() {
     { path: '/create', icon: PlusCircle, label: 'Create' },
     { path: '/profile', icon: User, label: 'Profile' },
   ];
-
-  // Datos de ejemplo para los posts del perfil con ubicaciones
-  const profilePosts = [
-    {
-      id: 1,
-      image: "https://i.pinimg.com/1200x/1b/03/07/1b0307811f10ba4453af49f6da9f4bc3.jpg",
-      location: "San Antonio"
-    },
-    {
-      id: 2,
-      image: "https://i.pinimg.com/736x/69/e6/d7/69e6d75b2b3654559138638390c21a56.jpg",
-      location: "Tierradentro"
-    },
-    {
-      id: 3,
-      image: "https://i.pinimg.com/736x/28/51/f2/2851f21b7f2eddc6aa6d6cce6b91c78d.jpg",
-      location: "San Antonio"
-    },
-    {
-      id: 4,
-      image: "https://i.pinimg.com/736x/61/5a/8a/615a8a32c8abe60efccf2b37997c2571.jpg",
-      location: "Lengua de Mariposa"
-    },
-    {
-      id: 5,
-      image: "https://i.pinimg.com/736x/7f/01/78/7f017860c8448b7318ac3e59ca866713.jpg",
-      location: "Tierradentro"
-    },
-    {
-      id: 6,
-      image: "https://i.pinimg.com/736x/92/b8/1d/92b81d5d9ba8186e8800556d5cd5fdcf.jpg",
-      location: "San Antonio"
-    },
-    {
-      id: 7,
-      image: "https://i.pinimg.com/736x/b0/d4/52/b0d452428acb1e999a3611169c820717.jpg",
-      location: "Lengua de Mariposa"
-    },
-    {
-      id: 8,
-      image: "https://i.pinimg.com/1200x/98/07/fb/9807fb2ab484f3e6f447076bb88f7f28.jpg",
-      location: "Tierradentro"
-    },
-    {
-      id: 9,
-      image: "https://i.pinimg.com/1200x/75/94/01/7594012b4b3bad6323f02747fe5a6e12.jpg",
-      location: "San Antonio"
-    }
-  ];
-
-  // Filtrar posts según el filtro activo
-  const filteredPosts = activeFilter === 'all' 
-    ? profilePosts 
-    : profilePosts.filter(post => post.location === activeFilter);
 
   // Update edit form when user data changes
   useEffect(() => {
@@ -220,6 +239,10 @@ function ProfilePage() {
               
               <div className="flex gap-12">
                 <div>
+                  <div className="font-bold text-gray-900 text-xl">{userPosts.length}</div>
+                  <div className="text-gray-600">Posts</div>
+                </div>
+                <div>
                   <div className="font-bold text-gray-900 text-xl">135</div>
                   <div className="text-gray-600">Following</div>
                 </div>
@@ -256,6 +279,9 @@ function ProfilePage() {
             </div>
             
             <div className="flex gap-8 text-lg">
+              <div>
+                <span className="font-semibold text-gray-900">{userPosts.length}</span> Posts
+              </div>
               <div>
                 <span className="font-semibold text-gray-900">135</span> Following
               </div>
@@ -362,45 +388,53 @@ function ProfilePage() {
         </div>
 
         {/* Posts Grid - Instagram Style 4 Columns */}
-        <div className="grid grid-cols-4 gap-1">
-          {filteredPosts.map((post) => (
-            <div 
-              key={post.id} 
-              className="aspect-[3/4] overflow-hidden relative group cursor-pointer"
-              onClick={() => handlePostClick(post.id)}
-              role="button"
-              tabIndex={0}
-              onKeyPress={(e) => e.key === 'Enter' && handlePostClick(post.id)}
-              aria-label={`View post from ${post.location}`}
-            >
-              <img 
-                src={post.image} 
-                alt={`Post from ${post.location}`} 
-                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-              />
-              
-              {/* Overlay con información de ubicación al hacer hover */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-end justify-start p-2">
-                <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  {post.location}
-                </span>
-              </div>
-            </div>
-          ))}
-          
-          {/* Mensaje si no hay posts con el filtro seleccionado */}
-          {filteredPosts.length === 0 && (
-            <div className="col-span-4 text-center py-12">
-              <p className="text-gray-500 text-lg">No posts found for "{activeFilter}"</p>
-              <button 
-                onClick={() => setActiveFilter('all')}
-                className="mt-2 text-[#7c6593] hover:text-[#6a5478] font-medium"
+        {loadingPosts ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7c6593]"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-1">
+            {filteredUserPosts.map((post) => (
+              <div 
+                key={post.id} 
+                className="aspect-[3/4] overflow-hidden relative group cursor-pointer"
+                onClick={() => handlePostClick(post.id)}
+                role="button"
+                tabIndex={0}
+                onKeyPress={(e) => e.key === 'Enter' && handlePostClick(post.id)}
+                aria-label={`View post ${post.title}`}
               >
-                Show all posts
-              </button>
-            </div>
-          )}
-        </div>
+                <img 
+                  src={post.image} 
+                  alt={`Post: ${post.title}`} 
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                />
+                
+                {/* Overlay con información al hacer hover */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-end justify-start p-2">
+                  <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {post.location || 'No location'}
+                  </span>
+                </div>
+              </div>
+            ))}
+            
+            {/* Mensaje si no hay posts */}
+            {filteredUserPosts.length === 0 && (
+              <div className="col-span-4 text-center py-12">
+                <div className="text-gray-400 text-6xl mb-4">📷</div>
+                <p className="text-gray-500 text-lg">No posts yet</p>
+                <p className="text-gray-400 text-sm">Share your first adventure!</p>
+                <button 
+                  onClick={() => dispatch(openEditProfileModal())}
+                  className="mt-4 px-6 py-2 bg-[#7c6593] text-white rounded-lg font-medium hover:bg-[#6a5478] transition-colors"
+                >
+                  Create your first post
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ===== EDIT PROFILE MODAL ===== */}
