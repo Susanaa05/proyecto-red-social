@@ -42,6 +42,7 @@ function SearchPage() {
                                     className="w-full rounded-2xl overflow-hidden shadow-md bg-white"
                                 >
                                     <Post
+                                        id={post.id} // ← AGREGAR ESTA LÍNEA
                                         image={post.image}
                                         title={post.title}
                                         category={post.category}
@@ -67,6 +68,7 @@ function SearchPage() {
                                 {filteredPosts.map((post) => (
                                     <Post
                                         key={post.id}
+                                        id={post.id} // ← YA ESTÁ AGREGADO
                                         image={post.image}
                                         title={post.title}
                                         category={post.category}
@@ -84,4 +86,3 @@ function SearchPage() {
 }
 
 export default SearchPage;
-

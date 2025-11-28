@@ -5,7 +5,6 @@ import { supabase } from "../lib/supabase";
 import { LikeButton } from "../components/LikeButton";
 import { CommentsSection } from "../components/CommentsSection";
 import { ArrowLeft, Calendar, MapPin, User, MessageCircle } from "lucide-react";
-import { useAppSelector } from "../store/hooks";
 
 interface PostDetailType {
   id: number;
@@ -29,7 +28,6 @@ export const PostDetail = () => {
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [showComments, setShowComments] = useState(true);
-  const user = useAppSelector((state) => state.auth.user);
 
   useEffect(() => {
     const fetchPost = async () => {

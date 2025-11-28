@@ -1,7 +1,5 @@
 import { useState, useRef } from "react";
 import { ArrowLeft, MapPin, Hash, Music, Sliders, Type, Upload, X } from "lucide-react";
-import { useAppDispatch } from "../store/hooks";
-import { addPost } from "../store/postsSlice";
 import { supabase, uploadImage } from '../lib/supabase';
 
 /**
@@ -15,7 +13,6 @@ interface CreatePostProps {
 }
 
 function CreatePost({ isOpen, onClose }: CreatePostProps) {
-  const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Current step: 'upload' or 'details'

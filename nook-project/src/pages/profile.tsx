@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Home, Map, Search, Bell, PlusCircle, User, Camera } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logout, updateProfile } from '../store/authSlice';
@@ -105,15 +105,6 @@ function ProfilePage() {
   const filteredUserPosts = activeFilter === 'all' 
     ? userPosts 
     : userPosts.filter(post => post.location === activeFilter);
-
-  const menuItems = [
-    { path: '/', icon: Home, label: 'Home' },
-    { path: '/maps', icon: Map, label: 'Maps' },
-    { path: '/search', icon: Search, label: 'Search' },
-    { path: '/notifications', icon: Bell, label: 'Notifications' },
-    { path: '/create', icon: PlusCircle, label: 'Create' },
-    { path: '/profile', icon: User, label: 'Profile' },
-  ];
 
   // Update edit form when user data changes
   useEffect(() => {

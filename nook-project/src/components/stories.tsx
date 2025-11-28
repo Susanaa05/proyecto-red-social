@@ -1,5 +1,5 @@
 // components/stories.tsx
-import React, { useState } from "react";
+import React from "react"; 
 
 // Component that displays user stories (similar to Instagram or Facebook)
 interface StoriesProps {

@@ -120,8 +120,6 @@ function Home() {
             category: post.category,
             description: post.description,
             visitors: post.visitors || [],
-            likes: post.likes || 0,
-            isLiked: post.is_liked || false,
             user: post.profiles
           }));
           
@@ -176,8 +174,6 @@ function Home() {
                       category={post.category}
                       description={post.description}
                       visitors={post.visitors}
-                      initialLikes={post.likes || 0}
-                      initialIsLiked={post.isLiked || false}
                     />
                   </div>
                 ))}
@@ -216,8 +212,6 @@ function Home() {
                       category={post.category}
                       description={post.description}
                       visitors={post.visitors}
-                      initialLikes={post.likes || 0}
-                      initialIsLiked={post.isLiked || false}
                     />
                   ))}
                   {filteredPosts.length === 0 && (
