@@ -2,14 +2,14 @@ import { useState } from "react";
 import nookLogo from "../assets/nook2.png";
 
 interface LoginFormProps {
-  onLogin?: (username: string, password: string) => void;
+  onLogin?: (email: string, password: string) => void;
   onGoToSignup: () => void;
   onForgotPassword: () => void;
 }
 
 function LoginForm({ onLogin, onGoToSignup, onForgotPassword }: LoginFormProps) {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
 
@@ -21,7 +21,7 @@ function LoginForm({ onLogin, onGoToSignup, onForgotPassword }: LoginFormProps) 
   };
 
   const handleLogin = () => {
-    onLogin?.(formData.username, formData.password);
+    onLogin?.(formData.email, formData.password);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -31,7 +31,6 @@ function LoginForm({ onLogin, onGoToSignup, onForgotPassword }: LoginFormProps) 
   };
 
   return (
-    // Contenedor del formulario de login
     <div className="p-10 rounded-3xl bg-white/70 backdrop-blur-md shadow-2xl max-w-sm w-full"> 
       <div className="text-center mb-8">
         <img
@@ -42,12 +41,12 @@ function LoginForm({ onLogin, onGoToSignup, onForgotPassword }: LoginFormProps) 
       </div>
 
       <div className="space-y-4">
-        {/* Username/Email Input */}
+        {/* SOLO Email */}
         <input
-          type="text"
-          placeholder="Phone, username or email"
-          value={formData.username}
-          onChange={(e) => handleInputChange('username', e.target.value)}
+          type="email"
+          placeholder="Email address"
+          value={formData.email}
+          onChange={(e) => handleInputChange('email', e.target.value)}
           onKeyPress={handleKeyPress}
           className="w-full px-4 py-3 rounded-xl bg-white text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all border border-gray-200"
         />
